@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\LocationDataWrite\20221128125147_init.cs" />
+    <Compile Remove="Migrations\LocationDataWrite\20221128125147_init.Designer.cs" />
+    <Compile Remove="Migrations\LocationDataWrite\20221130124257_location-20221130.cs" />
+    <Compile Remove="Migrations\LocationDataWrite\20221130124257_location-20221130.Designer.cs" />
+    <Compile Remove="Migrations\LocationDataWrite\20221206070243_20221206_location_1.cs" />
+    <Compile Remove="Migrations\LocationDataWrite\20221206070243_20221206_location_1.Designer.cs" />
+    <Compile Remove="Migrations\LocationDataWrite\20221206070633_20221206_location_1.cs" />
+    <Compile Remove="Migrations\LocationDataWrite\20221206070633_20221206_location_1.Designer.cs" />
+    <Compile Remove="Models\BTS\Address.cs" />
+    <Compile Remove="Models\Location\LocationDTO\ZoneDTO.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="11.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.1.2" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.1.0" />
+    <PackageReference Include="MediatR" Version="10.0.1" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
+    <PackageReference Include="Oracle.EntityFrameworkCore" Version="6.21.90" />
+        
+    <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
+    <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.8">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.8" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.8" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.8">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+    <PackageReference Include="tik4net" Version="3.5.0" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DataContext\RSMFFDbContext\" />
+    <Folder Include="Implementation\Schedule\" />
+    <Folder Include="Migrations\BtsDataWrite\" />
+    <Folder Include="Migrations\SMSNotifyWriteDB\" />
+    <ProjectReference Include="..\L3T.Utility\L3T.Utility.csproj" />
+    <Folder Include="Models\Location\LocationDTO\" />
+
+  </ItemGroup>
+
+</Project>

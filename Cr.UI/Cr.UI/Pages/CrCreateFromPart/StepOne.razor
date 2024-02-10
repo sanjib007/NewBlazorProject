@@ -1,0 +1,336 @@
+﻿@page "/stepOne"
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using Cr.UI.Data.StateManagement;
+@using Newtonsoft.Json;
+@using Cr.UI.Data.StateManagement;
+@inject SpinnerState _spinnerService;
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IChangeRequirementService _changeRequirmentService;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject IMenuAndPermissionService _menuPermissionService;
+@inject IJSRuntime js
+@inject AppState appState
+@implements IDisposable
+
+<!-- FORM -->
+@if (changeReq == null)
+{
+    <p>Loading....</p>
+}
+else
+{
+    if (getPermission == null)
+    {
+
+    }
+    else if (getPermission.Count == 0)
+    {
+
+    }
+    else
+    {
+        <div class="flex-1 lg:pr-2 md:px-5 px-1">
+            <!-- check -->
+            <!-- page-1=form-1 - start -->
+
+            <EditForm class="py-5" id="step-one-form-btn" EditContext="@context" OnValidSubmit="@SaveReq">
+                <DataAnnotationsValidator />
+                <!-- action="#" -->
+                <h2 class="font-semibold">
+                    Change Request
+                </h2>
+
+                <div class="py-5">
+                    <label for="subject" class="text-my_gray font-semibold">Subject : </label>
+                    <!-- check -->
+                    <input type="text" id="subject" name="subject" @bind="changeReq.Subject" placeholder="Write Your Subject"
+                           class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll">
+                    <!-- value="Retail Reference Point (RRP) Management System" -->
+                    <p class="text-rose-600"><ValidationMessage For="@(()=>changeReq.Subject)" /></p>
+
+                </div>
+
+                <fieldset>
+                    <legend class="text-my_gray font-semibold">
+                        <!-- check -->
+                        Change Request for (Check one that apply)
+                    </legend>
+                    <p class="text-rose-600">@ValidationMessage</p>
+                    <div class="flex gap-5">
+                        <Cr.UI.Shared.CrCreateSharePart.CrRedioComponent Data="@RedioOptions1" Data1="@RedioOptions2"
+                                                                         TextField="@((item)=>item)"
+                                                                         ValueField="@((item)=>item)"
+                                                                         SelectedValue="@SelectData"
+                                                                         setValueFun="SetValueFun" />
+
+                    </div>
+
+                </fieldset>
+            </EditForm>
+            <!-- page-1=form-1 - end -->
+            <!-- form-btn-out of form start  -->
+            @if ((getPermission["tempchangerequest/addtempchangerequest"]))
+            {
+                <div class="md:p-5 px-3 py-5 w-full bottom-0 sticky bg-white rounded top p">
+
+                    <div class=" flex md:gap-3 gap-1 justify-end">
+                        <!-- check -->
+                        <button form="step-one-form-btn" type="submit"
+                                class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+                            <!-- check -->
+                            Save & Continue
+
+                        </button>
+
+                        @*<button form="step-one-form-btn" type="button"
+            class="border border-light_gray md:px-6 md:py-2 px-2 py-1 rounded hover:text-my_blue hover:border-my_blue ease-in-out duration-300">
+            <!-- check -->
+            Cancel
+            </button>*@
+
+                    </div>
+
+                </div>
+            }
+
+
+            <!-- form-btn-out of form end  -->
+
+        </div>
+    }
+    
+
+}
+
+@code {
+
+    private UserModel user;
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+
+    private List<string> RedioOptions1 { get; set; }
+    private List<string> RedioOptions2 { get; set; }
+    protected string SelectData { get; set; }
+
+    EditContext context;
+    public StepOneRequestModel changeReq { get; set; }
+    public string ValidationMessage { get; set; }
+    IDictionary<string, bool> getPermission { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        user = new UserModel();
+        SelectData = "";
+        changeReq = new StepOneRequestModel();
+        context = new EditContext(changeReq);
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if(permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+            appState.OnChange += StateHasChanged;
+            var unCompleteData = await localStorage.GetItemAsync<TempChangeRequestedInfo>("uncompleteCr");
+            if (unCompleteData != null)
+            {
+                changeReq.Subject = unCompleteData.Subject;
+                SelectData = string.IsNullOrEmpty(unCompleteData.ChangeRequestFor) ? string.Empty : unCompleteData.ChangeRequestFor;
+            }
+            RedioOptions1 = new List<string>()
+                {
+                    "Project Relevant",
+                    "ERP Relevant",
+                    "Security Relevant",
+                    "User Authentication",
+                    "Configuration Item",
+                    "System Architecture",
+                    "Network Relevant",
+                    "Process, Policy & Procedure"
+                };
+            RedioOptions2 = new List<string>()
+                {
+                    "Product Deliverables Affected",
+                    "Design Deliverables Affected",
+                    "OS/Application Update",
+                    "User Type",
+                    "Patch / Tools",
+                    "User Responsibility",
+                    "Downtime Request",
+                    "Others"
+                };
+        }
+        _spinnerService.Hide();
+    }
+
+    public void Dispose()
+    {
+        appState.OnChange -= StateHasChanged;
+    }
+
+    public void SetValueFun(string setVal)
+    {
+        SelectData = setVal;
+        if (!string.IsNullOrEmpty(ValidationMessage))
+        {
+            ValidationMessage = string.Empty;
+        }
+    }
+
+
+    private async Task SaveReq(EditContext context)
+    {
+        _spinnerService.Show();
+        if (!(getPermission["tempchangerequest/addtempchangerequest"]))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("permission denied.");
+            return;
+        }
+        if (string.IsNullOrEmpty(SelectData))
+        {
+            _spinnerService.Hide();
+            ValidationMessage = "Change Request for (Check one that apply) is required.";
+            return;
+        }
+        changeReq.ChangeRequestFor = SelectData;
+        var response = await _changeRequirmentService.StepOneRequest(changeReq);        
+        if (response.StatusCode == 200)
+        {
+            int stepPosition = 1;
+            await localStorage.SetItemAsync<TempChangeRequestedInfo>("uncompleteCr", response.Data);
+            var steps = await localStorage.GetItemAsync<List<CrCreateStepsModel>>("CrSteps");
+            var nextStep = steps.FirstOrDefault(x => x.StapNumber == (stepPosition + 1));
+            if (nextStep.IsCompleted == false && nextStep.StapImage == null)
+            {
+                steps = await userService.ChangeSteps(steps, stepPosition);
+            }
+            //await appState.SetDataFunction(steps);
+            await InvokeAsync(async () =>
+            {
+                await appState.SetDataFunction(steps);
+            });
+            if (nextStep.IsCompleted == true && nextStep.StapImage == null)
+            {
+                NavigationManager.NavigateTo(nextStep.RouteName);
+            }
+            else
+            {
+                _spinnerService.Hide();
+                NavigationManager.NavigateTo("/StepOne");
+            }
+
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await SaveReq(context);
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess("Change request's subject created successfully.");
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+
+   
+
+}

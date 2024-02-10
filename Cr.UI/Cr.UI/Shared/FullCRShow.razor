@@ -1,0 +1,360 @@
+﻿@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Services.Interface;
+
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject NavigationManager NavigationManager
+
+@inject IChangeRequirementService _changeRequirementService;
+
+
+@if (aCrInfromation == null)
+{
+    <p>Loading...</p>
+}
+else if (string.IsNullOrEmpty(aCrInfromation.Subject) && string.IsNullOrEmpty(aCrInfromation.ChangeRequestFor))
+{
+    <p>Data Not Found</p>
+}
+else
+{
+    <EditForm class="p-1" id="step-five-form-btn" Model="@aCrInfromation">
+        <!-- action="#" -->
+        <!-- page-4=form-1 - start -->
+        <div>
+            <h2 class="font-semibold">
+                Change Request
+            </h2>
+
+            <div class="py-5">
+                <label for="subject" class="text-my_gray font-semibold">Subject : </label>
+                <!-- value="Retail Reference Point (RRP) Management System" -->
+                <textarea name="Subject" id="Subject" @bind="aCrInfromation.Subject" cols="30" rows="5"
+                          placeholder="Subject here" readonly
+                          class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+            </div>
+
+            <fieldset>
+                <legend class="text-my_gray font-semibold">
+                    Change Request for (Check one that apply)
+                </legend>
+
+                <div class="flex gap-5">
+                    <Cr.UI.Shared.CrCreateSharePart.CrRedioComponent Data="@RedioOptions1" Data1="@RedioOptions2"
+                                                                     TextField="@((item)=>item)"
+                                                                     ValueField="@((item)=>item)"
+                                                                     SelectedValue="@aCrInfromation.ChangeRequestFor"
+                                                                     setValueFun="()=>{}" />
+                </div>
+
+            </fieldset>
+        </div>
+        <!-- page-4=form-1 - end -->
+        <div class="">
+
+            <!-- 1st-textarea -->
+            <div class="">
+
+                <label for="AddReference" class="text-my_gray pt-3 font-semibold">
+                    Add Reference (Optional)
+                </label>
+
+                <textarea name="AddReference" id="AddReference" @bind="aCrInfromation.AddReference" cols="30" rows="5"
+                          placeholder="Add Reference Link Here" readonly
+                          class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+            </div>
+
+            <!-- drag & drop -->
+            <div class="pt-3">
+
+                <label for="drag_drop" class="text-my_gray pt-3 font-semibold">
+                    Upload Files (Optional)
+                </label>
+                <div class="flex items-center lg:gap-3 md:gap-2 gap-1 flex-col md:flex-row">
+                    <p class="text-my_gray">Up to 20 MB</p>
+
+                    <!-- gray-circle -->
+                    <span class="p-1 h-2 aspect-square bg-my_gray rounded-full mt-1">
+                    </span>
+
+                    <p class="text-my_gray">File Format: jpg, jpeg, png, pdf, csv, doc, xls</p>
+                </div>
+
+            </div>
+
+            <ul class="pt-4 space-y-1">
+
+                <!-- JPEG -->
+                @{
+                    if (FilePaths != null)
+                    {
+                        foreach (var aName in FilePaths)
+                        {
+                            var fileExtention = string.Empty;
+                            if (aName.Contains("png"))
+                            {
+                                fileExtention = "assets/PNG.svg";
+                            }
+                            else if (aName.Contains("jpg") || aName.Contains("jpeg"))
+                            {
+                                fileExtention = "assets/JPG.svg";
+                            }
+                            else if (aName.Contains("doc"))
+                            {
+                                fileExtention = "assets/DOC.svg";
+                            }
+                            else if (aName.Contains("pdf"))
+                            {
+                                fileExtention = "assets/PDF.svg";
+                            }
+                            else if (aName.Contains("xls") || aName.Contains("xlsx"))
+                            {
+                                fileExtention = "assets/XLS.svg";
+                            }
+                            <li class="flex flex-col gap-0 items-center justify-center" id="node">
+
+                                <div class="flex justify-between items-center rounded-b w-full p-1 border-x border-b bg-blue-200">
+
+                                    <div class="flex gap-3 justify-between items-center max-w-[70%]">
+
+                                        <img src="@fileExtention" alt="Dynamic-Icon-Logo-Name">
+                                        @if (aName.Contains("jpg") || aName.Contains("jpeg"))
+                                        {
+                                            <img src="@aName" alt="drag-drop-icon" class="mb-2">
+                                        }
+                                        else
+                                        {
+                                            <a href="@aName" class="text-xs overflow-clip break-words" target="_blank">
+                                                @{
+                                                    var nameOfFileList = aName.Split("/").ToList();
+                                                    <span>@nameOfFileList.LastOrDefault()</span>
+                                                }
+                                            </a>
+                                        }
+                                        
+                                    </div>
+
+                                    <div class="flex flex-col gap-1">
+                                        <img src="assets/down-arrow.svg" alt="down-arrow-icon"
+                                             class="h-6 aspect-square cursor-pointer p-1 hover:bg-active_bg  duration-300 rounded-full">
+
+                                        <img src="assets/Rejected.svg" alt="Rejected.svg"
+                                             class="h-6 aspect-square cursor-pointer p-1 hover:bg-active_bg  duration-300 rounded-full">
+                                    </div>
+                                </div>
+
+                            </li>
+                        }
+                    }
+                }                    
+            </ul>
+
+           
+
+        </div>
+
+        <!-- page-4=form-2 - start -->
+        <div class="pt-1">
+            <h2 class="font-semibold">
+                Existing Status & Change Impact
+            </h2>
+
+            <!-- 1st-textarea -->
+            <div class="flex md:gap-3 flex-col md:flex-row">
+                <!-- 1st-half -->
+                <div class="py-3 md:w-1/2">
+
+                    <label for="ChangeFromExisting" class="text-my_gray font-semibold">
+                        Change From (existing status)
+                    </label>
+
+                    <textarea name="ChangeFromExisting" id="ChangeFromExisting" cols="32" rows="5" readonly
+                              placeholder="Enter Descriptions" @bind="aCrInfromation.ChangeFromExisting"
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                </div>
+
+                <!-- 2nd-half -->
+                <div class="py-3 md:w-1/2">
+
+                    <label for="ChangeToAfter" class="text-my_gray font-semibold">
+                        Change To (change after)
+                    </label>
+
+                    <textarea name="ChangeToAfter" id="ChangeToAfter" cols="32" rows="5" readonly
+                              placeholder="Enter Descriptions" @bind="aCrInfromation.ChangeToAfter"
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                </div>
+            </div>
+
+            <!-- 2nd-textarea -->
+            <div class="py-3">
+                <label for="ChangeImpactDescription" class="text-my_gray font-semibold">
+                    Change Impact Description (Explain the impact if the proposed)
+                </label>
+
+                <textarea name="ChangeImpactDescription" id="ChangeImpactDescription" cols="30" rows="5" readonly
+                          placeholder="Enter Descriptions" @bind="aCrInfromation.ChangeImpactDescription"
+                          class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+            </div>
+
+            <!-- 3rd-textarea -->
+            <div class="py-3">
+                <label for="Justification" class="text-my_gray font-semibold">
+                    Justification (Justify why the proposed changes should be)
+                </label>
+
+                <textarea name="Justification" id="Justification" cols="30" rows="7" readonly
+                          placeholder="Enter Descriptions" @bind="aCrInfromation.Justification"
+                          class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+            </div>
+        </div>
+        <!-- page-4=form-2 - end -->
+        <!-- page-4=form-3 - start -->
+        <div class="pt-2">
+            <h2 class="font-semibold">
+                Risk factor
+            </h2>
+
+            <p class="text-my_gray pt-1">
+                Explain the impact if the proposed change is not implemented and risk after change
+            </p>
+
+            <div class="pt-3 flex md:gap-5 gap-3 flex-col md:flex-row">
+                <!-- check -->
+                <label for="risk" class="text-my_gray font-semibold">Level of risk :</label>
+                <!-- check -->
+                <InputRadioGroup Name="RiskFactor" @bind-Value="@aCrInfromation.LevelOfRisk" readonly>
+                    <ul class="space-x-5 flex">
+
+                        <!-- 1-checkbox -->
+                        <li class="flex items-center gap-3 ">
+                            <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="High" Value="@("High")" readonly />
+                            <!-- check -->
+                            <label for="High" class="text-my_gray block cursor-pointer">
+                                <!-- check -->
+                                High
+                            </label>
+                        </li>
+
+                        <!-- 2-checkbox -->
+                        <li class="flex items-center gap-3 ">
+                            <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Medium" Value="@("Medium")" readonly />
+                            <!-- check -->
+                            <label for="Medium" class="text-my_gray block cursor-pointer">
+                                <!-- check -->
+                                Medium
+                            </label>
+                        </li>
+
+                        <!-- 3-checkbox -->
+                        <li class="flex items-center gap-3 ">
+                            <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Low" Value="@("Low")" readonly />
+                            <!-- check -->
+                            <label for="Low" class="text-my_gray block cursor-pointer">
+                                <!-- check -->
+                                Low
+                            </label>
+                        </li>
+                    </ul>
+                </InputRadioGroup>
+            </div>
+
+            <!-- 1st-textarea -->
+            <div class="py-3">
+                <textarea name="LevelOfRiskDescription" id="LevelOfRiskDescription" cols="30" rows="5" readonly
+                          placeholder="Level of risk description" @bind="@aCrInfromation.LevelOfRiskDescription"
+                          class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+            </div>
+
+            <!-- 2nd-textarea -->
+            <div class="py-3">
+
+                <h2 class="font-semibold">Alternatives</h2>
+
+                <label for="AlternativeDescription" class="text-my_gray pt-3">
+                    <!-- check -->
+                    Provide up to three alternatives that could be implemented instead of the
+                    proposed change) – If applicable
+                </label>
+
+                <textarea name="AlternativeDescription" id="AlternativeDescription" cols="30" rows="5" readonly
+                          placeholder="Enter Descriptions" @bind="@aCrInfromation.AlternativeDescription"
+                          class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+            </div>
+        </div>
+        <!-- page-4=form-3 - end -->
+        <!-- form-buttons start -->
+        <!-- out of form check with 'id & form' -->
+        <!-- form-buttons end -->
+
+    </EditForm>
+
+}
+
+
+
+@code {
+
+    [Parameter] public ChangeRequestModel aCrInfromation { get; set; }
+    [Parameter] public List<string> fileNames { get; set; }
+    [Parameter] public List<string> FilePaths { get; set; }
+
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    
+    private string imgUrl { get; set; }
+
+    private List<string> RedioOptions1 { get; set; }
+    private List<string> RedioOptions2 { get; set; }
+    protected string SelectData { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = new UserModel();
+        claimsPrincipal = (await authenticationStateTask).User;
+        SelectData = string.Empty;
+        //FilePaths = new List<string>();
+
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {         
+
+            RedioOptions1 = new List<string>()
+                {
+                    "Project Relevant",
+                    "ERP Relevant",
+                    "Security Relevant",
+                    "User Authentication",
+                    "Configuration Item",
+                    "System Architecture",
+                    "Network Relevant",
+                    "Process, Policy & Procedure"
+                };
+            RedioOptions2 = new List<string>()
+                {
+                    "Product Deliverables Affected",
+                    "Design Deliverables Affected",
+                    "OS/Application Update",
+                    "User Type",
+                    "Patch / Tools",
+                    "User Responsibility",
+                    "Downtime Request",
+                    "Others"
+                };
+
+        }
+    }
+    
+
+}

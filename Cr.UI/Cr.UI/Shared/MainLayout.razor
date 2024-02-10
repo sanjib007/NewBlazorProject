@@ -1,0 +1,71 @@
+﻿@using Blazored.Toast.Configuration
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using Newtonsoft.Json;
+
+@inject NavigationManager navigationManager
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inherits LayoutComponentBase
+@inject IJSRuntime js
+@inject IMenuAndPermissionService _menuPermissionService;
+
+<PageTitle>Change Requirement Application</PageTitle>
+
+<Spinner></Spinner>
+
+    <MainLayourTopbar/>
+
+    
+    <main class="flex gap-3">
+
+        <MainLayoutSidebar />
+        
+        @Body
+
+    </main>
+
+    <!-- check -->
+    <!-- <script src="index.js"></script> -->
+<BlazoredToasts Position="ToastPosition.TopRight"
+                Timeout="10"
+                IconType="IconType.FontAwesome"
+                SuccessClass="success-toast-override"
+                SuccessIcon="fa fa-thumbs-up"
+                ErrorIcon="fa fa-bug" />
+
+
+@code{
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+   
+    protected override async Task OnInitializedAsync()
+    {
+        user = new UserModel();
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            //navigationManager.NavigateTo("/");
+        }
+        else
+        {            
+            await js.InvokeVoidAsync("initializeInactivityTimer", DotNetObjectReference.Create(this));
+
+        }
+    }    
+
+    [JSInvokable]
+    public async Task LogoutFromJS()
+    {
+        await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+        navigationManager.NavigateTo("/");
+    }
+
+}

@@ -1,0 +1,556 @@
+﻿using L3TIdentityTokenServer.CommonModel;
+using L3TIdentityTokenServer.DataAccess;
+using L3TIdentityTokenServer.DataAccess.IdentityModels;
+using L3TIdentityTokenServer.DataAccess.RequestModel;
+using L3TIdentityTokenServer.Services.Interface;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+namespace L3TIdentityTokenServer.Services.Implementation;
+
+public class AccountService : IAccountService
+{
+    private readonly UserManager<AppUser> _userManager;
+    private readonly SignInManager<AppUser> _signInManager;
+    private readonly RoleManager<AppRoles> _roleManager;
+    private readonly IdentityTokenServerDBContext _context;
+    public AccountService(IdentityTokenServerDBContext context, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, RoleManager<AppRoles> roleManager)
+    {
+        _context = context;
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _roleManager = roleManager;
+    }
+
+    public async Task<ApiSuccess> ChangePasswordAsync(ChangePasswordRequestModel request, string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User not found.");
+        }
+        var isPasswordValid =
+            await _signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: true);
+        if (!isPasswordValid.Succeeded)
+        {
+            throw new GlobalApplicationException("Password is not match.");
+        }
+        var changePassword = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (changePassword.Succeeded)
+        {
+            var response = new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Password is changed."
+            };
+            return response;
+        }
+        throw new GlobalApplicationException("Somthing is worng.");
+    }
+    
+    public async Task<ApiSuccess> GenerateForgetPasswordTokenAsync(ForgetPasswordRequestModel request)
+    {
+        var response = new ApiSuccess();
+        try
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email.Trim());
+            if (user == null)
+            {
+                throw new GlobalApplicationException("User is not found");
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user).ConfigureAwait(false);
+            response.Status = "Success";
+            response.StatusCode = 200;
+            response.Data = new
+            {
+                Token = token,
+                Email = request.Email
+            };
+            return response;
+            
+        }
+        catch (Exception ex)
+        {
+            throw new GlobalApplicationException(ex.Message);
+        }
+
+        return response;
+    }
+
+    public async Task<ApiSuccess> ResetPasswordAsync(ResetPasswordModel requestModel)
+    {
+        var response = new ApiSuccess();
+        var user = await _userManager.FindByEmailAsync(requestModel.Email.Trim());
+        if (user != null)
+        {
+            var result = await _userManager.ResetPasswordAsync(user, requestModel.Token, requestModel.NewPassword);
+            if (result.Succeeded)
+            {
+                response.Status = "Success";
+                response.StatusCode = 200;
+                response.Message = "Password change successful";
+                return response;
+            }
+            
+            throw new GlobalApplicationException(result.Errors.Select(x=> x.Description).FirstOrDefault());
+        }
+        throw new GlobalApplicationException("User infromation is not found.");
+    }
+
+    public async Task<ApiSuccess> ChangePhoneNumberAsync(ChangePhoneNumberRequestModel requestModel, string userId)
+    {
+        var response = new ApiSuccess();
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User information is not found.");
+        }
+        
+        //Generate phone token
+        await _userManager.SetPhoneNumberAsync(user, user.PhoneNumber);    
+        var token = await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
+        //logger.Debug("PhoneNumber is:" + user.PhoneNumber + "-" + token);
+        ////Send token via SMS
+        //if (!string.IsNullOrEmpty(token) && false)
+        //{
+        //    var res = await messageSendClient.GetResponse<MB_MessageSend>(new MB_MessageSend
+        //    {
+        //        Body = $"Daralber Verification Code: {token}",
+        //        Receiver = user.PhoneNumber,
+        //        UniCode = "UTF"
+        //    });
+        //    //logger.Debug("res:" + request.Password);
+        //    response.Succeeded = res?.Message?.IsSent ?? false;
+
+        //}
+        
+        response.Status = "Success";
+        response.StatusCode = 200;
+        response.Message = "Send token";
+        response.Data = new
+        {
+            Token = token,
+            PhoneNumber = requestModel.PhoneNumber
+        };
+        return response;
+    }
+
+    public async Task<ApiSuccess> ConfirmPhoneNumberAsync(ConfirmPhoneNumberRequestModel requestModel, string userId)
+    {
+        var response = new ApiSuccess();
+
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User information is not found.");
+        }
+        
+        var res = await _userManager.ChangePhoneNumberAsync(user, requestModel.PhoneNumber, requestModel.Token);
+        if (!res.Succeeded)
+        {
+            throw new GlobalApplicationException(res.Errors.Select(x=> x.Description).FirstOrDefault());
+        }
+
+        response.Status = "Success";
+        response.StatusCode = 200;
+        response.Message = "Phone number change is successful.";
+        return response;
+    }
+
+    public async Task<ApiSuccess> GeneratePhoneNumberTokenAsync(ChangePhoneNumberRequestModel requestModel, string userId)
+    {
+        var response = new ApiSuccess();
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User information is not found.");
+        }
+        
+        //Generate phone token
+        var token = await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
+        //logger.Debug("PhoneNumber is:" + user.PhoneNumber + "-" + token);
+        ////Send token via SMS
+        //if (!string.IsNullOrEmpty(token) && false)
+        //{
+        //    var res = await messageSendClient.GetResponse<MB_MessageSend>(new MB_MessageSend
+        //    {
+        //        Body = $"Daralber Verification Code: {token}",
+        //        Receiver = user.PhoneNumber,
+        //        UniCode = "UTF"
+        //    });
+        //    //logger.Debug("res:" + request.Password);
+        //    response.Succeeded = res?.Message?.IsSent ?? false;
+
+        //}
+        
+        response.Status = "Success";
+        response.StatusCode = 200;
+        response.Message = "Send token";
+        response.Data = new
+        {
+            Token = token,
+            PhoneNumber = requestModel.PhoneNumber
+        };
+        return response;
+    }
+
+    public async Task<ApiSuccess> ChangeEmailAsync(ChangeEmailRequestModel requestModel, string userId)
+    {
+        var response = new ApiSuccess();
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User information is not found.");
+        }
+        
+        //Generate Email token
+        var token = await _userManager.GenerateChangeEmailTokenAsync(user, user.PhoneNumber);
+        
+        response.Status = "Success";
+        response.StatusCode = 200;
+        response.Message = "Send token";
+        response.Data = new
+        {
+            Token = token,
+            Email = requestModel.Email
+        };
+        return response;
+    }
+
+    public async Task<ApiSuccess> ChangeEmailConfirmWithToken(ConfirmEmailRequestModel requestModel, string userId)
+    {
+        var response = new ApiSuccess();
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User information is not found.");
+        }
+        
+        var res = await _userManager.ChangeEmailAsync(user, requestModel.Email, requestModel.Token);
+        if (!res.Succeeded)
+        {
+            throw new GlobalApplicationException(res.Errors.Select(x=> x.Description).FirstOrDefault());
+        }
+
+        response.Status = "Success";
+        response.StatusCode = 200;
+        response.Message = "Phone number change is successful.";
+        return response;
+    }
+
+    public async Task<ApiSuccess> GetProfile(string userId)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            throw new GlobalApplicationException("User id can't be empty");
+        }
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User information is not found");
+        }
+        user.PasswordHash = null;
+        return new ApiSuccess()
+        {
+            Status = "Success",
+            StatusCode = 200,
+            Message = "User Information.",
+            Data = user
+        };
+    }
+
+    public async Task<ApiSuccess> GetRolesByUserIdAsync(string userId)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            throw new GlobalApplicationException("User id can't be empty");
+        }
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User infromation is not found.");
+        }
+        var roles = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
+        var response = new ApiSuccess()
+        {
+            Status = "Success",
+            StatusCode = 200,
+            Message = "Role information",
+            Data = roles
+        };
+        return response;
+    }
+
+    public async Task<ApiSuccess> AddUserToRoleAsync(string role, string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User infromation is not found.");
+        }
+
+        var assignRole = await _userManager.GetRolesAsync(user);
+        var getRole = assignRole.FirstOrDefault(x => x == role);
+        if (!string.IsNullOrEmpty(getRole))
+        {
+            throw new GlobalApplicationException("This role already assigned.");
+        }
+        var result = await _userManager.AddToRoleAsync(user, role);
+        if (result.Succeeded)
+        {
+            return new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Role added."
+            };
+        }
+
+        throw new GlobalApplicationException(result.Errors.Select(x=> x.Description).FirstOrDefault());
+    }
+
+    public async Task<ApiSuccess?> RemoveUserFromRoleAsync(string role, string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User infromation is not found.");
+        }
+        var result = await _userManager.RemoveFromRoleAsync(user, role);
+        if (result.Succeeded)
+        {
+            return new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Role removed."
+            };
+        }
+
+        throw new GlobalApplicationException(result.Errors.Select(x=> x.Description).FirstOrDefault());
+    }
+
+    public async Task<ApiSuccess> AddUserToRolesAsync(AddUserToRolesRequest request, string requestUserName)
+    {
+        var user = await _userManager.FindByNameAsync(requestUserName);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User infromation is not found.");
+        }
+
+        var errorList = new List<string>();
+        var newRoleList = new List<string>();
+        var assignRole = await _userManager.GetRolesAsync(user);
+        foreach (var aRole in request.roles)
+        {
+            var getRole = assignRole.FirstOrDefault(x => x == aRole);
+            if (!string.IsNullOrEmpty(getRole))
+            {
+                errorList.Add(aRole+ " role already assigned.");
+            }
+            else
+            {
+                newRoleList.Add(aRole);
+            }
+        }
+
+        if (errorList.Count > 0)
+        {
+            throw new GlobalApplicationException(string.Join(',', errorList.Select(a => a).ToList()));
+        }
+        
+        
+        var result = await _userManager.AddToRolesAsync(user, newRoleList);
+        if (result.Succeeded)
+        {
+            return new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Role added."
+            };
+        }
+
+        throw new GlobalApplicationException(result.Errors.Select(x=> x.Description).FirstOrDefault());
+    }
+
+    public async Task<ApiSuccess> RemoveUserFromRolesAsync(AddUserToRolesRequest request, string requestUserName)
+    {
+        var user = await _userManager.FindByNameAsync(requestUserName);
+        if (user == null)
+        {
+            throw new GlobalApplicationException("User infromation is not found.");
+        };
+
+        var errorList = new List<string>();
+        var getAllRoles = await _roleManager.Roles.ToListAsync();
+        foreach (var aRole in request.roles)
+        {
+            var getARole = getAllRoles.FirstOrDefault(x => x.Name == aRole);
+            if (getARole == null)
+            {
+                errorList.Add("Role "+ aRole + " does not exist");
+            }
+        }
+
+        if (errorList.Count > 0)
+        {
+            throw new GlobalApplicationException(string.Join(",", errorList.Select(x => x).ToList()));
+        }
+
+        var result = await _userManager.RemoveFromRolesAsync(user, request.roles);
+        if (result.Succeeded)
+        {
+            return new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Role removed."
+            };
+        }
+
+        throw new GlobalApplicationException(result.Errors.Select(x => x.Description).FirstOrDefault());
+    }
+
+    public async Task<ApiSuccess> GetUserClaimsAsync(GetUserClaimsRequestModel request)
+    {
+       
+        var user = await _userManager.FindByNameAsync(request.UserName).ConfigureAwait(false);
+        if (user != null)
+        {
+            var claims = await _userManager.GetClaimsAsync(user).ConfigureAwait(false);
+
+            if (!string.IsNullOrEmpty(request.ClaimName))
+            {
+                claims = claims.Where(x => x.Value == request.ClaimName).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(request.ClaimType))
+            {
+                claims = claims.Where(x => x.Type == request.ClaimType).ToList();
+            }
+
+            return new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Claim",
+                Data = claims
+            };
+        }
+
+        throw new GlobalApplicationException("User infromation is not found.");
+    }
+
+    public async Task<ApiSuccess> GetUserRolesAsync(GetUserRolesRequestModel request)
+    {
+        var user = await _userManager.FindByNameAsync(request.UserName).ConfigureAwait(false);
+        if (user != null)
+        {
+            var roles = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
+            if (!string.IsNullOrEmpty(request.RoleName))
+            {
+                roles = roles.Where(x => x.Contains(request.RoleName)).ToList();
+            }
+
+            return new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Roles",
+                Data = roles
+            };
+        }
+
+        throw new GlobalApplicationException("User information not found.");
+    }
+
+    public async Task<ApiSuccess> GetAllUsersAsync()
+    {
+        var allUser = await _context.Users.ToListAsync();
+        if (allUser.Count <= 0)
+        {
+            throw new GlobalApplicationException("User information is not found.");
+        }
+        return new ApiSuccess()
+        {
+            Status = "Success",
+            StatusCode = 200,
+            Message = "All user list",
+            Data = allUser
+        };
+    }
+
+    public async Task<ApiSuccess> GetAllRolesAsync()
+    {
+        var getAllRoles = await _roleManager.Roles.ToListAsync();
+        if (getAllRoles.Count <= 0)
+        {
+            throw new GlobalApplicationException("Role list is empty");
+        }
+        return new ApiSuccess()
+        {
+            Status = "Success",
+            StatusCode = 200,
+            Message = "All roles",
+            Data = getAllRoles
+        };
+    }
+
+    public Task<ApiSuccess> GetAllUserClaimsAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<ApiSuccess> GetAllRoleClaimsAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<ApiSuccess> EditRole(EditRoleNameRequestModel req)
+    {
+        if (await _roleManager.RoleExistsAsync(req.RoleName))
+        {
+            throw new GlobalApplicationException("This role already exist");
+        }
+
+        var role = await _roleManager.FindByIdAsync(req.Id);
+        role.Name = req.RoleName;
+        var result = await _roleManager.UpdateAsync(role);
+        if (result.Succeeded)
+        {
+            return new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Role update successfully."
+            };
+        }
+
+        throw new GlobalApplicationException(result.Errors.Select(x => x.Description).FirstOrDefault());
+
+    }
+
+    public async Task<ApiSuccess> DeleteRole(string id)
+    {
+        var getRole = await _roleManager.FindByIdAsync(id);
+        if (getRole == null)
+        {
+            throw new GlobalApplicationException("Role dose not exist");
+        }
+        var result = await _roleManager.DeleteAsync(getRole);
+        if (result.Succeeded)
+        {
+            return new ApiSuccess()
+            {
+                Status = "Success",
+                StatusCode = 200,
+                Message = "Role Delete Successfully."
+            };
+        }
+        throw new GlobalApplicationException(result.Errors.Select(x => x.Description).FirstOrDefault());
+    }
+}

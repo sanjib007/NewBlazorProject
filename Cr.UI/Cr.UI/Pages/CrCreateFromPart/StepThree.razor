@@ -1,0 +1,446 @@
+﻿@page "/StepThree"
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Helper;
+@using Cr.UI.Services.Interface;
+@using Cr.UI.Data.StateManagement;
+@using Newtonsoft.Json;
+
+@inject SpinnerState _spinnerService;
+@inject AppState AppState
+@implements IDisposable
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IChangeRequirementService _changeRequirmentService;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject AuthenticationStateProvider authenticationStateProvider;
+@inject IMenuAndPermissionService _menuPermissionService;
+@inject IJSRuntime js
+
+@if (stepThreeChangeReq == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    if (getPermission == null)
+    {
+
+    }
+    else if (getPermission.Count == 0)
+    {
+
+    }
+    else
+    {
+        <!-- FORM -->
+        <div class="flex-1 lg:pr-2 md:px-5 px-1">
+            <!-- check -->
+            <!-- page-2=form-1 - start -->
+
+            <EditForm class="py-5" id="step-three-form-btn" Model="@stepThreeChangeReq" OnValidSubmit="SaveReq">
+                <!-- action="#" -->
+                <!-- page-5=form - start -->
+                <div class="">
+
+                    <!-- 1st-textarea -->
+                    <div class="">
+
+                        <label for="AddReference" class="text-my_gray pt-3 font-semibold">
+                            Add Reference (Optional)
+                        </label>
+
+                        <textarea name="AddReference" id="AddReference" @bind="stepThreeChangeReq.AddReference" cols="30" rows="5"
+                                  placeholder="Add Reference Link Here"
+                                  class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                    </div>
+
+                    <!-- drag & drop -->
+                    <div class="pt-3">
+
+                        <label for="drag_drop" class="text-my_gray pt-3 font-semibold">
+                            Upload Files (Optional)
+                        </label>
+
+                        <div class="py-3">
+                            <!-- <div class="mx-auto max-w-7xl sm:px-6 lg:px-8"> -->
+
+                            <div class='flex flex-col items-center py-8 px-6 rounded border-2 border-light_gray border-dashed' id="drag_drop_Area">
+
+                                <!-- draggable="true" -->
+                                <!-- class="[dragging ? 'border-indigo-500' :'border-gray-400', 'flex flex-col items-center py-12 px-6 rounded-md border-2
+                                    border-dashed']" -->
+
+                                <img src="assets/drag-drop-icon.svg" alt="drag-drop-icon" class="mb-2">
+
+                                <p class="mb-2 text-my_gray">or</p>
+
+                                <label for="drag__drop"
+                                       class="bg-white py-1 px-3 rounded-sm border border-red-600 shadow-sm text-sm font-medium text-red-600 hover:bg-active_bg cursor-pointer duration-300 ">
+                                    <!-- focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 -->
+                                    Browse file
+
+
+                                    <InputFile id="drag__drop" class="hidden" OnChange="OnChooseFile" />
+                                    @*<input id="drag_drop" type="file" name="file" class=" hidden" onchange="OnChooseFile(event)" multiple>*@
+
+                                </label>
+
+
+                                <!-- <p class="text-xs text-gray-600 mt-4">Maximum upload file size: 512MB.
+                                </p> -->
+                            </div>
+                        </div>
+
+                        <div class="flex items-center lg:gap-3 md:gap-2 gap-1 flex-col md:flex-row">
+                            <p class="text-my_gray">Up to 20 MB</p>
+
+                            <!-- gray-circle -->
+                            <span class="p-1 h-2 aspect-square bg-my_gray rounded-full mt-1">
+                            </span>
+
+                            <p class="text-my_gray">File Format: jpg, jpeg, png, pdf, doc, docx, xls and xlsx</p>
+                        </div>
+                    </div>
+
+                    <!-- files-formats -->
+                    <ul class="pt-4 space-y-1">
+                        @foreach (var aName in fileNames)
+                        {
+                            <li class="flex justify-between items-center border border-light_gray py-3 px-4 rounded">
+                                <div class="flex gap-7 items-center">
+                                    <img src="assets/JPEG.svg" alt="jpeg-icon">
+                                    <p>@aName</p>
+                                </div>
+                                <img style="cursor:pointer;" src="assets/cross-blue-icon.svg" alt="cross-blue-icon" @onclick="()=>removedFileName(aName)">
+                            </li>
+                        }
+
+                    </ul>
+
+                </div>
+                <!-- page-5=form - end -->
+                <!-- form-buttons start -->
+                <!-- out of form check with 'id & form' -->
+                <!-- form-buttons end -->
+
+            </EditForm>
+
+            <!-- page-2=form-1 - end -->
+            <!-- form-btn-out of form start  -->
+            @if ((getPermission["tempchangerequest/addtempchangerequest"]))
+            {
+                <div class="flex justify-between md:p-5 px-3 py-5 w-full bottom-0 sticky bg-white rounded top ">
+                    <!-- check -->
+                    <!-- flex justify-between -->
+
+                    <a href="StepTwo" form="form-btn"
+                       class=" bg-white border border-my_dark md:px-6 md:py-2 px-2 py-1 rounded text-my_dark hover:bg-my_dark hover:text-white ease-in-out duration-300 flex gap-2 items-center justify-center group">
+                        <!-- check -->
+                        <img src="/assets/left-arrow.svg" alt="left-arrow-icon" class="cus-white-filter pt-[2px]">
+
+                        Back
+
+                    </a>
+
+                    <div class=" flex md:gap-3 gap-1 justify-end">
+                        <!-- check -->
+
+                        <button form="step-three-form-btn" type="submit"
+                                class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+                            <!-- check -->
+                            Save & Continue
+
+                        </button>
+
+                        @*<button form="step-two-form-btn" type="button"
+            class="border border-light_gray md:px-6 md:py-2 px-2 py-1 rounded hover:text-my_blue hover:border-my_blue ease-in-out duration-300">
+            <!-- check -->
+            Cancel
+            </button>*@
+
+                    </div>
+
+                </div>
+            }
+
+
+
+            <!-- form-btn-out of form end  -->
+
+        </div>
+    }
+    
+}
+
+
+@code {
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private StepThreeRequestModel stepThreeChangeReq { get; set; }
+    private string FileName { get; set; }
+
+    private long maxAllowedFiles { get; set; } = 20 * 1024 * 1024;
+    private List<string> fileNames = new List<string>();
+    private IBrowserFile loadedFiles { get; set; }
+
+    IDictionary<string, bool> getPermission { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        stepThreeChangeReq = new StepThreeRequestModel();
+        user = new UserModel();
+
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+           
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if (permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+            AppState.OnChange += StateHasChanged;
+            var unCompleteData = await localStorage.GetItemAsync<TempChangeRequestedInfo>("uncompleteCr");
+            if (unCompleteData != null)
+            {
+                stepThreeChangeReq.AddReference = unCompleteData.AddReference;
+                FileName = "";
+                if (unCompleteData.AttachedFiles != null)
+                {
+                    if (unCompleteData.AttachedFiles.Count > 0)
+                    {
+                        foreach (var aImg in unCompleteData.AttachedFiles)
+                        {
+                            fileNames.Add(aImg.FileName);
+                        }
+                    }
+                }
+
+            }
+        }
+        _spinnerService.Hide();
+    }
+
+    public void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged;
+    }
+
+    private async Task SaveReq()
+    {
+        _spinnerService.Show();
+        if (!(getPermission["tempchangerequest/addtempchangerequest"]))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("permission denied.");
+            return;
+        }
+        var response = await _changeRequirmentService.StepThreeRequest(stepThreeChangeReq, loadedFiles);
+
+        if (response.StatusCode == 200)
+        {
+            int stepPosition = 3;
+            await localStorage.SetItemAsync<TempChangeRequestedInfo>("uncompleteCr", response.Data);
+            fileNames = new List<string>();
+            foreach (var aImg in response.Data.AttachedFiles)
+            {
+                fileNames.Add(aImg.FileName);
+            }
+            var steps = await localStorage.GetItemAsync<List<CrCreateStepsModel>>("CrSteps");
+            //steps = await userService.ChangeSteps(steps, stepPosition);
+            var nextStep = steps.FirstOrDefault(x => x.StapNumber == (stepPosition + 1));
+            if (nextStep.IsCompleted == false && nextStep.StapImage == null)
+            {
+                steps = await userService.ChangeSteps(steps, stepPosition);
+            }
+            //await AppState.SetDataFunction(steps);
+            await InvokeAsync(async () =>
+            {
+                await AppState.SetDataFunction(steps);
+            });
+            if (nextStep.IsCompleted == true && nextStep.StapImage == null)
+            {
+                NavigationManager.NavigateTo(nextStep.RouteName);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/StepTwo");
+            }
+
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await SaveReq();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    // image
+    public void OnChooseFile(InputFileChangeEventArgs e)
+    {
+        _spinnerService.Show();
+        var extentionArray = CommonHelper.FileExtentionList.Split(",");
+        loadedFiles = e.File;
+        //var sizeImg = new byte[];
+        var fileName = loadedFiles.Name.Split(".");
+        string fileExtention = fileName[1];
+        var matchExtion = extentionArray.FirstOrDefault(x => x.Trim() == fileExtention);
+        if (string.IsNullOrEmpty(matchExtion))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("File format is not match.");
+            return;
+        }
+        if (loadedFiles.Size > maxAllowedFiles)
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("File size is grater then 20MB.");
+            return;
+        }
+        fileNames.Add(loadedFiles.Name);
+        _spinnerService.Hide();
+    }
+
+    private async Task removedFileName(string fileName)
+    {
+        _spinnerService.Hide();
+        var request = new RemovedFileRequestModel()
+            {
+                fileName = fileName
+            };
+        var response = await _changeRequirmentService.RemovedFile("TempChangeRequest/RemovedFile", request);
+
+        if (response.StatusCode == 200)
+        {
+            fileNames = new List<string>();
+            foreach (var aimg in response.Data)
+            {
+                fileNames.Add(aimg.FileName);
+            };
+
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await SaveReq();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess("Change request's reference & attachments created successfully.");
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+}

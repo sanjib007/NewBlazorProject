@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "L3T.Utility": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:64793;http://localhost:64794"
+    }
+  }
+}

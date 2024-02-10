@@ -1,0 +1,202 @@
+﻿@using Cr.UI.Data;
+<!-- pagination  -->
+
+<div class="md:p-4 md:pb-7 px-3 py-4 w-full bg-white rounded-sm border-t border-light_gray">
+    <!-- top -->
+    <!-- flex justify-between -->
+
+    <div class="flex md:gap-3 gap-1 justify-end items-center flex-col lg:flex-row">
+        <p class="flex items-center justify-center gap-2 border px-2 rounded-sm border-my_blue bg-my_blue text-white duration-300">Total <span>@TotalCount</span> items</p>
+
+        <div class="flex md:gap-3 gap-1 justify-center items-center">
+            <!-- left-arrow -->
+            <a style="cursor: pointer" @onclick="(()=>NavigateTo(CurrentPage-1, string.Empty))"
+               class="flex items-center justify-center border rounded-sm border-white hover:border-my_blue hover:text-my_blue duration-300 focus:border-my_blue focus:text-my_blue h-6 aspect-square text-center text-xl pb-1">
+                <!-- active:border-my_blue active:text-my_blue disabled:text-light_gray -->
+                &lt;
+            </a>
+            <!-- disabled -->
+            <!-- 1 -->
+            <a style="cursor: pointer" @onclick="(()=>NavigateTo(1, string.Empty))"
+               class="border rounded-sm h-6 aspect-square text-center border-white hover:border-my_blue hover:text-my_blue duration-300 focus:border-my_blue focus:text-my_blue flex items-center justify-center">
+                <!-- active:border-my_blue active:text-my_blue -->
+                @FirstPages
+            </a>
+            <!-- disabled -->
+            <!-- 3-dots -->
+            <div class="flex items-end gap-1 pt-1">
+                <!-- gray-circle for dots -->
+                <div class="p-1 bg-black opacity-25 rounded-full"></div>
+                <!-- gray-circle for dots -->
+                <div class="p-1 bg-black opacity-25 rounded-full"></div>
+                <!-- gray-circle for dots -->
+                <div class="p-1 bg-black opacity-25 rounded-full"></div>
+            </div>
+        </div>
+
+        @for(var i = StartPage; i <= EndPage; i++)
+        {
+            var pageNumber = i;
+            if (i != CurrentPage)
+            {
+                <a style="cursor: pointer" @onclick="(()=>NavigateTo(pageNumber, string.Empty))"
+                    class="border rounded-sm h-6 aspect-square text-center border-white hover:border-my_blue hover:text-my_blue duration-300 focus:border-my_blue focus:text-my_blue flex items-center justify-center">
+                    <!-- active:border-my_blue active:text-my_blue -->
+                    @i
+                </a>
+            }
+            else
+            {
+                <a style="cursor: pointer" @onclick="(()=>NavigateTo(pageNumber, string.Empty))" class="border rounded-sm h-6 aspect-square text-center border-white hover:border-my_blue hover:text-my_blue duration-300 focus:border-my_blue focus:text-my_blue flex items-center justify-center">
+                    <!-- active:border-my_blue active:text-my_blue -->
+                    @i
+                </a>
+            }
+        }
+
+        <div class="flex md:gap-3 gap-1 justify-center items-center">
+            <!-- 3-dots -->
+            <div class="flex items-end gap-1 pt-1">
+                <!-- gray-circle for dots -->
+                <div class="p-1 bg-black opacity-25 rounded-full"></div>
+                <!-- gray-circle for dots -->
+                <div class="p-1 bg-black opacity-25 rounded-full"></div>
+                <!-- gray-circle for dots -->
+                <div class="p-1 bg-black opacity-25 rounded-full"></div>
+            </div>
+
+            <a style="cursor: pointer" @onclick="(()=>NavigateTo(TotalPages, string.Empty))"
+               class="border rounded-sm h-6 aspect-square text-center border-white hover:border-my_blue hover:text-my_blue duration-300 focus:border-my_blue focus:text-my_blue flex items-center justify-center">
+                <!-- active:border-my_blue active:text-my_blue -->
+                @TotalPages
+            </a>
+
+            <!-- disabled -->
+            <!-- right-arrow -->
+            <a style="cursor: pointer" @onclick="(()=>NavigateTo(CurrentPage+1, string.Empty))"
+               class="flex items-center justify-center border rounded-sm border-white hover:border-my_blue hover:text-my_blue duration-300 focus:border-my_blue focus:text-my_blue h-6 aspect-square text-center text-xl pb-1">
+                <!-- active:border-my_blue active:text-my_blue disabled:text-light_gray -->
+                &gt;
+            </a>
+            <!-- disabled -->
+        </div>
+
+        <!-- select-option -->
+        <select name="show_pagination" id="show_pagination" @onchange="setPageSize"
+                class="border border-light_gray p-1 rounded-sm flex items-center justify-center">
+            <option class="text-black text-center p-1 text-md" value="10" selected>10 / page</option>
+            <option class="text-black text-center p-1 text-md" value="20">20 / page</option>
+            <option class="text-black text-center p-1 text-md" value="30">30 / page</option>
+            <option class="text-black text-center p-1 text-md" value="40">40 / page</option>
+            <option class="text-black text-center p-1 text-md" value="50">50 / page</option>
+        </select>
+
+        <!-- input-number -->
+        <label for="page">Go To
+
+            <input type="number" @onchange="setGoToPage"
+                   class="border border-light_gray focus:border-light_gray rounded-sm w-14 px-2 py-1 text-center"
+                   placeholder="Page" />
+        </label>
+       
+    </div>
+    @ChildContent
+</div>
+
+<!-- pagination  -->
+
+@code {
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public int TotalCount { get; set; }
+    [Parameter] public int CurrentPage { get; set; }
+    [Parameter] public int PageSize { get; set; }
+    [Parameter] public int TotalPages { get; set; }
+    [Parameter] public EventCallback<PaginationModel> SetPageInfo { get; set; }
+
+    public int GoToPage { get; set; }
+
+    private int FirstPages { get; set; }
+    //private int LastPages { get; set; }
+
+    private bool IsFristpartShowOrHide { get; set; }
+    private bool IsLastpartShowOrHide{ get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        FirstPages = 1;
+        IsFristpartShowOrHide = false;
+        IsLastpartShowOrHide = true;
+
+        await pageRange(CurrentPage, TotalPages);
+        StateHasChanged();
+    }
+
+    private async Task NavigateTo(int page, string direction)
+    {
+        if (page <= 0)
+        {
+            page = 1;
+        }
+        if(TotalPages < page)
+        {
+            page = TotalPages;
+        }
+
+        await pageRange(page, TotalPages);
+
+        PaginationModel pageModel = new PaginationModel()
+        {
+            pageNumber = page,
+            pageSize = PageSize
+        };
+        SetPageInfo.InvokeAsync(pageModel);
+    }
+
+    private int StartPage { get; set; }
+    private int EndPage { get; set; }
+
+    public async Task pageRange(int page, int pageCount)
+    {
+        var start = page - 2;
+        var end = page + 2;
+
+        if (end > pageCount)
+        {
+            start -= (end - pageCount);
+            end = pageCount;
+        }
+        if (start <= 0)
+        {
+            end += ((start - 1) * (-1));
+            start = 1;
+        }
+
+        end = end > pageCount ? pageCount : end;
+
+        StartPage = start;
+        EndPage = end;
+    }
+
+    public async Task setPageSize(ChangeEventArgs e)
+    {
+        PageSize = Convert.ToInt16(e.Value.ToString());
+        await NavigateTo(CurrentPage, string.Empty);
+    }
+
+    public async Task setGoToPage(ChangeEventArgs e)
+    {
+        int page = 1;
+        if (!string.IsNullOrEmpty(e.Value.ToString()))
+        {
+            page = Convert.ToInt16(e.Value.ToString());
+        }
+        
+        if(page == 0)
+        {
+            page = 1;
+        }
+        await NavigateTo(page, string.Empty);
+    }
+
+}

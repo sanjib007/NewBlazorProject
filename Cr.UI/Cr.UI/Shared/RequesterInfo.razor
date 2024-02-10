@@ -1,0 +1,56 @@
+﻿@using Cr.UI.Data.ChangeRequirementModel;
+
+
+@if (ACrInfromation == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="request-details mb-4">
+        <button class="flex justify-between items-center w-full bg-[#f9f9f9] py-[9px] px-[18px]  outline outline-[#efefef] font-medium text-sm">
+            Requester Details
+            <img src="/assets/down-fill-arrow.svg"
+                 alt="down-fill-arrow-icon"
+                 class="cus-black-filter h-3 aspect-square" />
+        </button>
+        <table class="outline outline-[#efefef] bg-white border-separate border-spacing-4 w-full"
+               cellspacing="0"
+               cellpadding="0">
+            <tbody>
+                <tr class="font-normal text-xs">
+                    <td>CR ID:</td>
+                    <td><a class="text-blue-600">CR#@ACrInfromation.Id</a></td>
+                </tr
+                <tr class="font-normal text-xs">
+                    <td>Requester:</td>
+                    <td><a class="text-blue-600">@ACrInfromation.RequestorName</a></td>
+                </tr>
+                <tr class="font-normal text-xs">
+                    <td>Designation:</td>
+                                                    <td>@ACrInfromation.RequestorDesignation</td>
+                </tr>
+                <tr class="font-normal text-xs">
+                    <td>Department:</td>
+                    <td>@ACrInfromation.DepartName</td>
+                </tr>
+                @*<tr class="font-normal text-xs">
+                    <td>Approved by:</td>
+                    <td><a class="text-blue-600">Shahab Al Yamin Chawdhury</a></td>
+                </tr>*@
+            </tbody>
+        </table>
+    </div>
+}
+
+
+
+@code {
+    [Parameter] public ChangeRequestModel ACrInfromation { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ACrInfromation = new ChangeRequestModel();
+
+    }
+}

@@ -1,0 +1,19 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace L3T.Infrastructure.Helpers.Models.PPPoE
+{
+    public class nas
+    {
+        [Key]
+        public int id { get; set; }   
+        public string? nasname { get; set; }  // Router IP 
+        public string? shortname { get; set; }  // Ankur Net
+        public string? secret { get; set; }   
+        public int type { get; set; }   
+    }
+}

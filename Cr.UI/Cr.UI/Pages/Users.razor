@@ -1,0 +1,839 @@
+﻿@page "/Users"
+
+
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ApprovalFlow;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.CrStatus;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using System.Globalization;
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+@using Newtonsoft.Json;
+@using Cr.UI.Data.StateManagement;
+@inject SpinnerState _spinnerService;
+
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject IJSRuntime js
+@inject IUserService userService
+
+@inject IMenuAndPermissionService _menuPermissionService;
+@inject IApprovalFlowSetupService _crApprovalFlowSetupService;
+
+
+
+
+
+
+
+
+<Title Value="Approval Flow Setup" />
+
+<div class="h-fit w-[80%] mt-20 ml-[12px]">
+    @{
+        var main = "main";
+        var other = "other";
+        var update = "Update";
+        var adduser = "AddUser";
+    }
+    <!-- mr-2 -->
+    <!-- container -->
+    <!-- upper-section -->
+    <section class="bg-white flex flex-col md:flex-row gap-5 md:items-center items-start justify-between px-6 py-3 mb-2">
+        <button @onclick="(()=>ShowCrDetails(adduser))"
+                class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
+            <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+            Add User
+        </button>
+    </section>
+
+    <section class="mt-8">
+            <!-- department wise table show -->
+            <!-- dashboard-table -->
+            <!-- flex flex-col lg:flex-row lg:gap-16 gap-1 justify-center lg:justify-start lg:items-start -->
+            @foreach (var aDepartment in AllDepartment)
+            {
+                List<AppUserModel> departmentWiseUserList = AllUserList.Where(e => e.department.Trim() == aDepartment.Trim() & e.RoleName == "User").ToList();
+                if (departmentWiseUserList.Count > 0)
+                {
+                    <h2>Department : @aDepartment </h2>
+                    <div class="overflow-x-scroll scroll border-t border-x border-light_gray rounded-sm">
+                        
+                        <table class="w-full whitespace-nowrap overflow-x-scroll scroll text-black ">
+                            <thead class="bg-[#FAFAFA]">
+                                <tr class="border-b border-light_gray">
+                                    <th class="border-r border-light_gray ">
+                                        <button class="py-2 px-3 flex gap-2 items-center justify-center w-full hover:bg-active_bg duration-300 ease-in-out">
+                                            Name
+                                        </button>
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        L3Id
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Department
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Designation
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Email
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Phone Number
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Role
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white text-start">
+                                @{
+                                    foreach (var aInfo in departmentWiseUserList)
+                                    {
+                                        <!-- 1st-High-Approved -->
+                                        <tr class="border-b border-light_gray">
+                                            <td class="py-2 px-3 border-r border-light_gray ">
+                                                <span>@aInfo.fullName</span>(@aInfo.Id)
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray ">
+                                                @aInfo.Id
+                                            </td>
+                                            <td class="py-2 px-3 border-x border-light_gray ">
+                                                @aInfo.department
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray ">
+                                                @aInfo.user_designation
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray ">
+                                                @aInfo.email
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray text-center">
+                                                @aInfo.phoneNumber
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray text-center">
+                                                @aInfo.RoleName
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <br />
+                }
+            }
+        </section>  
+
+</div>
+
+
+
+
+
+
+
+
+<!--Modal part-->
+<div class="relative z-[100] hidden" id="modal" aria-labelledby="modal-title" role="dialog" aria-modal="false">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all">
+                <div class="bg-white flex items-center md:justify-between p-5 rounded-sm relative flex-col md:flex-row gap-10 md:gap-1 justify-center">
+                    <!-- w-11/12 -->
+
+                    <div class="flex items-center gap-4 hover:text-my_blue duration-300 group md:w-1/2">
+                        <h2 class="line-clamp-1">
+                            CR User Add
+                        </h2>
+                    </div>
+
+                    <button type="button" class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
+                            @onclick="ModalClose">
+                        <img src="/assets/cross-icon.svg" alt="cross-icon" />
+                    </button>
+                </div>
+
+                <main class="flex gap-3 flex-col lg:flex-row">
+                    @if (showPart.ToLower() == "adduser")
+                    {
+                        <!-- FORM -->
+                        <div class="flex-1 lg:pr-2 md:px-5 px-1">
+                            <!-- check -->
+                            <!-- page-2=form-1 - start -->
+
+                            <EditForm style="padding-left:20px;" class="py-5" id="insertMainApprover" Model="@AddUserReq" OnValidSubmit="AddUserSaveReq">
+                                <!-- action="#" -->
+                                <!-- page-5=form - start -->
+                                <div class="">
+
+                                    <!-- 1st-textarea -->
+                                    <div class="">
+
+                                        <label for="MenuName" class="text-my_gray pt-3 font-semibold">
+                                            User
+                                        </label>
+                                        <div class="flex w-full items-stretch relative">
+                                            <input type="text" @bind-value=SearchText @oninput=HandleInput
+                                               placeholder="Search..."
+                                               class="px-2 py-1 border-y border-l  w-full rounded-l-sm" id="user_id" />
+
+                                            <button type="submit" class="border px-2 py-1 group bg-active_bg rounded-r-sm">
+                                                <img src="/assets/search-icon.svg" alt="search-icon" class="cus-filter" />
+                                            </button>
+
+                                            <div class="w-full absolute top-[33px] left-0 bg-white max-h-[300px] overflow-y-scroll scroll  rounded border shadow-md">
+
+                                                @if (searchResult is not null)
+                                                {
+                                                    <ul class="flex flex-col gap-1">
+                                                        @if (searchResult.Any())
+                                                        {
+                                                            @foreach (var aText in searchResult)
+                                                            {
+                                                                <li class="p-2 hover:cursor-pointer hover:bg-active_bg transition ease-in-out duration-300 border-b break-words" @onclick=@(_ => SelectCustomer(aText))>
+                                                                    @aText
+                                                                </li>
+                                                            }
+                                                        }
+
+                                                        else
+                                                        {
+                                                            <li class="disabled text-red-600 p-2 break-words">No results</li>
+                                                        }
+                                                    </ul>
+                                                }
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <!-- 1st-textarea -->
+                                    <div class="">
+
+                                        <label for="MenuName" class="text-my_gray pt-3 font-semibold">
+                                            Select Role Name
+                                        </label>
+
+                                        <select id="roles" @bind=SelectedRole
+                                            class="border border-light_gray py-1 px-3 rounded-sm flex items-center justify-center ">
+
+                                            <option selected disabled>Choose a Role</option>
+
+                                            @foreach (var arole in RoleNames)
+                                            {
+                                                <option value="@arole" class="hover:text-white checked:text-white p-1 text-md hover:bg-my_blue checked:bg-my_blue">@arole</option>
+                                            }
+
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class=" flex md:gap-3 gap-1 justify-end  mt-8" style="margin-bottom: 20px;">
+                                    <button type="submit"
+                                        class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+                                        <!-- check -->
+                                        Save
+
+                                </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    }
+                </main>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Modal part End-->
+}
+
+
+@code {
+    [Parameter]
+    public long CrId { get; set; } = 0;
+
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private ApprovalFlowRequestModel filter { get; set; }
+
+    string SearchText = string.Empty;
+    List<string> searchResult { get; set; }
+    private string? selectedUserId;
+    private string? selectedUserName;
+
+    IDictionary<string, bool> getPermission { get; set; }
+
+
+    List<string> AllDepartment { get; set; }
+    List<string> AllEmployee { get; set; }
+    //List<string> AllUserLists { get; set; }
+    //string SelectedDepartment { get; set; }
+
+    //List<CrDefaultApprovalFlow> PrimaryDefaultApprovalFlow { get; set; }
+    //List<CrDefaultApprovalFlow> AllDefaultApprovalFlow { get; set; }
+
+    //AddCrDefaultApprovalFlowReq InsertApprovalFlow { get; set; }
+
+    AddUser AddUserReq { get; set; }
+    string SelectedRole { get; set; }
+    List<string> RoleNames { get; set; }
+
+    //List<UserListModel> departmentWiseUserList { get; set; }
+    List<AppUserModel> AllUserList { get; set; }
+
+
+    string showPart = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        user = new UserModel();
+        filter = new ApprovalFlowRequestModel();
+        AllDepartment = new List<string>();
+        AllEmployee = new List<string>();
+        //InsertApprovalFlow = new AddCrDefaultApprovalFlowReq();
+        AddUserReq = new AddUser();
+        showPart = string.Empty;
+        RoleNames = new List<string>();
+        claimsPrincipal = (await authenticationStateTask).User;
+        AllUserList = new List<AppUserModel>();
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+            //var localStorageGetPermission = await localStorage.GetItemAsync<string>("permission");
+            //var localStorageGetPermission1 = await localStorage.GetItemAsync<string>("permission1");
+            //List<MenuSetupAndPermissionViewModel> strToObj = JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission);
+            //List<MenuSetupAndPermissionViewModel> part1 = JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission1);
+            //if (part1 != null && part1.Count > 0)
+            //{
+            //    strToObj.AddRange(part1);
+            //}
+            //getPermission = new Dictionary<string, bool>();
+            //var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            //if (strToObj.Count > 0)
+            //{
+            //    foreach (var aName in nameList)
+            //    {
+            //        var havePermission = perMiss.Any(x => x == aName);
+            //        getPermission.Add(aName, havePermission);
+            //    }
+            //}
+            /* Permission Setup End */
+
+            await GetAllDepartment();
+            //await GetAllDefaultApprovalFlow();
+            await GetAllRolesName();
+            await GetDepartmentWiseEmployee();
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task GetAllDepartment()
+    {
+        _spinnerService.Show();
+        var response = await _crApprovalFlowSetupService.GetAllStringList("Account/AllDepartment");
+        if (response.StatusCode == 200)
+        {
+            AllDepartment = response.Data;
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetAllDepartment();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task GetAllEmployeeDepartmentWise(string setDepartment)
+    {
+        _spinnerService.Show();
+        var response = await _crApprovalFlowSetupService.GetAllStringList($@"Account/AllDepartmentWiseEmployee/{setDepartment}");
+        if (response.StatusCode == 200)
+        {
+            AllEmployee = response.Data;
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetAllEmployeeDepartmentWise(setDepartment);
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        _spinnerService.Show();
+        string filter = e.Value?.ToString();
+        if (filter?.Length > 2)
+        {
+            searchResult = await _menuPermissionService.GetAllUsersBySearch("Account/SearchEmployee?text=" + filter);
+        }
+        else
+        {
+            searchResult = null;
+            selectedUserName = selectedUserId = null;
+        }
+        _spinnerService.Hide();
+
+    }
+    private async Task SelectCustomer(string text)
+    {
+        var getData = text.Split("-").Select(x => x.Trim()).ToList();
+        selectedUserId = getData[1];
+        SearchText = getData[0];
+        //SelectedRole = getData[3];
+        searchResult = null;
+    }
+
+    private async Task GetAllRolesName()
+    {
+        _spinnerService.Show();
+        var response = await _menuPermissionService.GetAllRolesName("MenuSetupAndPermission/GetAllRoles");
+        if (response.StatusCode == 200)
+        {
+            RoleNames = response.Data;
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetAllRolesName();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+    //private async Task GetAllUser(string user)
+    //{
+    //    _spinnerService.Show();
+    //    var response = await _crApprovalFlowSetupService.GetAllStringList($@"Account/AllDepartmentWiseEmployee/{setDepartment}");
+    //    if (response.StatusCode == 200)
+    //    {
+    //        AllEmployee = response.Data;
+    //    }
+    //    else if (response.StatusCode == 401)
+    //    {
+    //        var newRes = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        var res = await showMessage(newRes);
+    //        if (res.StatusCode == 200)
+    //        {
+    //            await GetAllEmployeeDepartmentWise(setDepartment);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var newResponse = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        await showMessage(newResponse);
+    //    }
+    //    _spinnerService.Hide();
+    //}
+
+    //private async Task GetAllDefaultApprovalFlow()
+    //{
+    //    _spinnerService.Show();
+    //    var response = await _crApprovalFlowSetupService.GetAllDefaultApprovalFlow($@"CrDefaultApprovalFlow/GetAllDefaultApprovalFlow");
+    //    if (response.StatusCode == 200)
+    //    {
+    //        PrimaryDefaultApprovalFlow = response.Data.FindAll(x => x.IsPrincipleApprover == true).ToList();
+    //        AllDefaultApprovalFlow = response.Data.FindAll(x => x.IsPrincipleApprover == false).ToList();
+    //    }
+    //    else if (response.StatusCode == 401)
+    //    {
+    //        var newRes = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        var res = await showMessage(newRes);
+    //        if (res.StatusCode == 200)
+    //        {
+    //            await GetAllDefaultApprovalFlow();
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var newResponse = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        await showMessage(newResponse);
+    //    }
+    //    _spinnerService.Hide();
+    //}
+
+    //private async Task GetEmployee(string e)
+    //{
+    //    if (string.IsNullOrEmpty(e))
+    //    {
+    //        toastService.ShowError("Please Select a Department");
+    //        return;
+    //    }
+    //    string department = e;
+    //    AllEmployee = new List<string>();
+    //    await GetAllEmployeeDepartmentWise(department);
+    //    InsertApprovalFlow.Department = department;
+
+    //}
+
+    //private async Task GetAllEmployee(string user)
+    //{
+    //    if (string.IsNullOrEmpty(user))
+    //    {
+    //        toastService.ShowError("Please Select a User");
+    //        return;
+    //    }
+    //    //string department = user;
+    //    AllUserLists = new List<string>();
+    //    await GetAllUser(user);
+    //    AddUserReq.UserId = user;
+
+    //}
+
+    //private async Task CheckboxChanged(CrDefaultApprovalFlow ainfo)
+    //{
+    //    _spinnerService.Show();
+    //    if (ainfo.IsActive == true)
+    //    {
+    //        ainfo.IsActive = false;
+    //    }
+    //    else
+    //    {
+    //        ainfo.IsActive = true;
+    //    }
+    //    var response = await _crApprovalFlowSetupService.DefaultApproverActiveInActive($@"CrDefaultApprovalFlow/DefaultApproverActiveInactive", ainfo);
+    //    if (response.StatusCode == 200)
+    //    {
+    //        toastService.ShowSuccess(response.Message);
+    //    }
+    //    else if (response.StatusCode == 401)
+    //    {
+    //        var newRes = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        var res = await showMessage(newRes);
+    //        if (res.StatusCode == 200)
+    //        {
+    //            await GetAllDefaultApprovalFlow();
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var newResponse = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        await showMessage(newResponse);
+    //    }
+    //    _spinnerService.Hide();
+    //}
+
+    private async Task ShowCrDetails(string option)
+    {
+        AllEmployee = new List<string>();
+        //InsertApprovalFlow = new AddCrDefaultApprovalFlowReq();
+        showPart = option;
+        await js.InvokeVoidAsync("modalOpen");
+    }
+
+    private async Task ModalClose()
+    {
+        await js.InvokeVoidAsync("modalClose");
+    }
+
+    //private async Task PrimaryApprovalSaveReq()
+    //{
+    //    _spinnerService.Show();
+    //    InsertApprovalFlow.Department = "INI";
+    //    var responseForUpdate = await _crApprovalFlowSetupService.InsertDefaultApprovalFlow($@"CrDefaultApprovalFlow/AddPrincipleDefaultApprovalFlowFor", InsertApprovalFlow);
+
+    //    if (responseForUpdate.StatusCode == 200)
+    //    {
+    //        await GetAllDefaultApprovalFlow();
+    //        toastService.ShowSuccess(responseForUpdate.Message);
+    //        await ModalClose();
+    //    }
+    //    else if (responseForUpdate.StatusCode == 401)
+    //    {
+    //        var newRes = new ApiResponse()
+    //            {
+    //                Status = responseForUpdate.Status,
+    //                StatusCode = responseForUpdate.StatusCode,
+    //                Message = responseForUpdate.Message
+    //            };
+    //        var res = await showMessage(newRes);
+    //        if (res.StatusCode == 200)
+    //        {
+    //            await PrimaryApprovalSaveReq();
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var newResponse = new ApiResponse()
+    //            {
+    //                Status = responseForUpdate.Status,
+    //                StatusCode = responseForUpdate.StatusCode,
+    //                Message = responseForUpdate.Message
+    //            };
+    //        await showMessage(newResponse);
+    //    }
+    //    _spinnerService.Hide();
+    //}
+
+    //private async Task GeneralApprovalSaveReq()
+    //{
+    //    _spinnerService.Show();
+    //    var aList = InsertApprovalFlow.ApproverEmpId.Split("-").Select(x => x.Trim()).ToList();
+    //    InsertApprovalFlow.ApproverEmpId = aList[0];
+    //    var responseForUpdate = await _crApprovalFlowSetupService.InsertDefaultApprovalFlow($@"CrDefaultApprovalFlow/AddCrDefaultApprovalFlow", InsertApprovalFlow);
+
+    //    if (responseForUpdate.StatusCode == 200)
+    //    {
+    //        await GetAllDefaultApprovalFlow();
+    //        toastService.ShowSuccess(responseForUpdate.Message);
+    //        await ModalClose();
+    //    }
+    //    else if (responseForUpdate.StatusCode == 401)
+    //    {
+    //        var newRes = new ApiResponse()
+    //            {
+    //                Status = responseForUpdate.Status,
+    //                StatusCode = responseForUpdate.StatusCode,
+    //                Message = responseForUpdate.Message
+    //            };
+    //        var res = await showMessage(newRes);
+    //        if (res.StatusCode == 200)
+    //        {
+    //            await GeneralApprovalSaveReq();
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var newResponse = new ApiResponse()
+    //            {
+    //                Status = responseForUpdate.Status,
+    //                StatusCode = responseForUpdate.StatusCode,
+    //                Message = responseForUpdate.Message
+    //            };
+    //        await showMessage(newResponse);
+    //    }
+    //    InsertApprovalFlow = new AddCrDefaultApprovalFlowReq();
+    //    _spinnerService.Hide();
+    //}
+
+    private async Task AddUserSaveReq()
+    {
+        _spinnerService.Show();
+        if (string.IsNullOrEmpty(SelectedRole))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("You must be select a role");
+            return;
+        }
+        var filterData = new AddUser()
+            {
+                RoleName = SelectedRole,
+                L3Id = selectedUserId
+            };
+
+        var response = await _crApprovalFlowSetupService.CRAddEmployee($@"Account/PreAssignForCR", filterData);
+        if (response.StatusCode == 200)
+        {
+            toastService.ShowSuccess(response.Message);
+            await ModalClose();
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await AddUserSaveReq();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        //InsertApprovalFlow = new AddCrDefaultApprovalFlowReq();
+        AddUserReq = new AddUser();
+        _spinnerService.Hide();
+    }
+
+    private async Task GetDepartmentWiseEmployee()
+    {
+        _spinnerService.Show();
+        //var response = await _crApprovalFlowSetupService.GetEmployeeList($@"Account/DepartmentWiseEmployee/{setDepartment}");
+        var response = await _crApprovalFlowSetupService.GetEmployeeList($@"Account/AllEmployee");
+        if (response.StatusCode == 200)
+        {
+            AllUserList = response.Data.ToList();
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetDepartmentWiseEmployee();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess(apiResponse.Message);
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            toastService.ShowError(apiResponse.Message);
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+
+
+}

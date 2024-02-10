@@ -1,0 +1,350 @@
+﻿@page "/index"
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.CrStatus;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Data.StateManagement;
+@using Cr.UI.Services.Interface;
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+@using Newtonsoft.Json;
+
+@inject SpinnerState _spinnerService;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IGenericService<StatusWiseTotalCrResponse> _statusWiseTotalCrGenericService;
+@inject IGenericService<CrDashboardResponseModel> _dashboardInfoService;
+@inject IMenuAndPermissionService _menuPermissionService;
+@inject IToastService toastService;
+
+
+@inject AppState appState
+@implements IDisposable
+
+<Title Value="Dashboard" />
+
+<div class="h-fit w-[80%] mt-20 ml-[12px]">
+    <section class="mb-4">
+        <div class="flex items-center justify-between p-6 bg-white mb-[1px]">
+            <div class="left">
+                @{
+                    var noonStr = string.Empty;
+                    var noon = DateTime.Now.Hour;
+                    if(noon < 12)
+                    {
+                        noonStr = "Morning";
+                    }
+                    else if (noon < 17)
+                    {
+                        noonStr = "Afternoon";
+                    }
+                    else
+                    {
+                        noonStr = "Evening";
+                    }
+                }
+                <h2 class="font-semibold text-3xl mb-2">Good @noonStr</h2>
+                <p class="text-xs font-normal text-[#3C4A68]">
+                    <span class="font-semibold">@FullName</span>, Welcome back to your Change Request Management!
+                </p>
+            </div>
+            <div class="right">
+                <h2 class="font-medium text-xl text-[#84818A] text-right mb-2">@System.DateTime.Now.ToString("dddd")</h2>
+                <p class="font-semibold text-xs text-right">@System.DateTime.Now.ToString("dd MMMM yyyy")</p>
+            </div>
+        </div>
+        
+            <div class="grid grid-cols-4 gap-[2px] bg-transparent md:max-lg:grid-cols-3 sm:max-md:grid-cols-2 mobile:max-sm:grid-cols-1">
+                @if (statusWiseTotalCrList != null)
+                {
+                    @foreach (var aInfo in statusWiseTotalCrList)
+                    {
+                        <div class="card bg-white flex justify-between p-6">
+                            <div class="left">
+                                <h2 class="text-sm font-semibold mb-4">@aInfo.StatusDisplayName</h2>
+                                <p class="font-normal text-4xl">@aInfo.Total</p>
+                            </div>
+                            <div class="right self-end">
+                                <img src="/assets/@(aInfo.Status).svg" alt="card-icon" />
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        
+    </section>
+    <div class="flex justify-between flex-wrap gap-y-[12px]">
+        <section class="cr-category w-[60%] mobile:max-lg:w-full bg-white">
+            <div class="table-head px-6 py-4 border-b-2">
+                <h2>Request Status by Category</h2>
+            </div>
+            <table class="w-full table-auto border-separate border-spacing-5">
+                <thead>
+                    <tr>
+                        <th class="text-left">CR Category</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (getAllTotalCrByCatagoryWises != null)
+                    {
+                        foreach (var aInfo in getAllTotalCrByCatagoryWises)
+                        {
+                            <tr>
+                                <td>@aInfo.ChangeRequestFor</td>
+                                <td class="text-center">@aInfo.TotalItem</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </section>
+        <section class="requested-cr w-[39%] mobile:max-lg:w-full bg-white">
+            <div class="table-head px-6 py-4 border-b-2">
+                <h2>Recent CR</h2>
+            </div>
+            <table class="w-full table-fixed border-separate border-spacing-5">
+                <thead>
+                    <tr >
+                        <th class="text-left">Title</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (LastFiveCrInfo != null)
+                    {
+                        foreach (var aInfo in LastFiveCrInfo)
+                        {
+                            <tr>
+                                <td>
+                                    <p class="line-clamp-1">@aInfo.Subject</p>
+                                </td>
+                                <td class="text-center">@aInfo.Status</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </section>
+    </div>
+</div>
+
+@code {
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private List<StatusWiseTotalCrResponse> statusWiseTotalCrList { get; set; }
+    private CrDashboardResponseModel DashboardData { get; set; }
+    private List<GetAllTotalCrByCatagoryWise> getAllTotalCrByCatagoryWises { get; set; }
+    private List<ChangeRequestModel> LastFiveCrInfo { get; set; }
+    private string userRole { get; set; } = "USER";
+    private string FullName { get; set; } = string.Empty;
+
+    IDictionary<string, bool> getPermission { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        statusWiseTotalCrList = new List<StatusWiseTotalCrResponse>();
+        DashboardData = new CrDashboardResponseModel();
+        getAllTotalCrByCatagoryWises = new List<GetAllTotalCrByCatagoryWise>();
+        LastFiveCrInfo = new List<ChangeRequestModel>();
+
+        user = new UserModel();
+
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+            
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if (permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+
+            appState.OnChange += StateHasChanged;
+
+            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+
+            appState.PathName = uri.AbsolutePath;
+            appState.AddClass = "text-my_blue bg-active_bg";
+            userRole = await localStorage.GetItemAsync<string>("roles");
+
+            FullName = await localStorage.GetItemAsync<string>("fullName");
+            
+            
+            await getStatusWiseTotalCR();
+            await dashboardInfo();
+            
+            
+        }
+        _spinnerService.Hide();
+    }
+
+    public void Dispose()
+    {
+        appState.OnChange -= StateHasChanged;
+    }
+
+    private async Task getStatusWiseTotalCR()
+    {
+        _spinnerService.Show();
+        var url = "";
+        if (!userRole.ToUpper().Contains("USER"))
+        {
+            url = "ChangeRequest/StatusWiseTotalCR";
+        }
+        else
+        {
+            url = "ChangeRequest/MyCrTotalStatus";
+        }
+        var response = await _statusWiseTotalCrGenericService.GetAllAsync(url);
+        
+        if (response.StatusCode == 200)
+        {
+            if (response.Data != null)
+            {
+                statusWiseTotalCrList = response.Data;
+            }
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await getStatusWiseTotalCR();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task dashboardInfo()
+    {
+        _spinnerService.Show();
+        var response = await _dashboardInfoService.GetOnlyAsync("ChangeRequest/GetCrInfoFroDashboard");
+        if (response.StatusCode == 200)
+        {
+            if (response.Data != null)
+            {
+                DashboardData = response.Data;
+                getAllTotalCrByCatagoryWises = DashboardData.getAllTotalCrByCatagoryWises;
+                LastFiveCrInfo = DashboardData.LastFiveCrInfo;
+            }
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await getStatusWiseTotalCR();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess(apiResponse.Message);
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)AuthenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            toastService.ShowError(apiResponse.Message);
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)AuthenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+    
+}

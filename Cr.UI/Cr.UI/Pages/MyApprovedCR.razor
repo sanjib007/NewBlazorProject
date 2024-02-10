@@ -1,0 +1,766 @@
+﻿@page "/MyApprovedCR"
+
+
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.CrStatus;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using System.Globalization;
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+@using Newtonsoft.Json;
+@using Cr.UI.Data.StateManagement;
+@inject SpinnerState _spinnerService;
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject IJSRuntime js
+@inject IUserService userService
+@inject IGenericService<StatusWiseTotalCrResponse> _statusWiseTotalCrGenericService;
+@inject IGenericService<CrApprovalFlow> _crApprovalFlowService;
+@inject IChangeRequirementService _changeRequirementService;
+@inject IMenuAndPermissionService _menuPermissionService;
+
+
+
+
+<Title Value="My Approved" />
+
+@if (getPermission == null)
+{
+    <p>Loading....</p>
+}
+else if (getPermission.Count() == 0)
+{
+    <p>No data found.</p>
+}
+else
+{
+    <div class="h-fit w-[80%] mt-20 ml-[12px]">
+        <!-- mr-2 -->
+        <!-- container -->
+        <!-- upper-section -->
+        <section class="bg-white flex flex-col md:flex-row gap-5 md:items-center items-start justify-between px-6 py-3 mb-2">
+            <div>
+                <p class="text-sm pb-2"><span class="text-my_gray">Change Request / </span> All CR's</p>
+
+                <a href="/index"
+                   class="flex items-center text-xl gap-4 hover:text-my_blue duration-300 rounded-full group">
+                    <span>
+                        <img src="/assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
+                    </span>
+                    Change Request
+                </a>
+            </div>
+            @if (getPermission["tempchangerequest/addtempchangerequest"])
+            {
+                <a href="/stepOne"
+                   class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
+                    <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+                    Create
+                </a>
+            }
+        </section>
+
+
+        <section class="">
+            <!-- filter-section -->
+            <div class="bg-white px-6 py-2 mb-1 flex flex-col md:flex-row gap-5 md:gap-0 w-full md:items-center justify-between h-full">
+
+                <CrStatusMenu StatusWiseTotalCrList="@statusWiseTotalCrList" OnClickCrStatus="@getStatusWiseCrList" />
+
+                <div class="md:border-l-2 flex flex-1 flex-col md:flex-row gap-5 md:gap-0">
+                    <!-- search -->
+                    <div class="flex h-8 flex-1 justify-end">
+                        <EditForm class="flex w-full items-stretch justify-end" Model="@filter" OnValidSubmit="@SearchOptionMethoh">
+                            <input type="text w-[80%]" @bind-value="filter.Subject" placeholder="Search by CR subject" class="px-2 py-1 border-y border-l md:w-7/12" />
+                            <button type="submit" class="border px-2 py-1 group bg-active_bg">
+                                <img src="/assets/search-icon.svg" alt="search-icon" class="cus-filter" />
+                            </button>
+                        </EditForm>
+                    </div>
+
+                    <!-- button-filter -->
+                    @* <button class="flex gap-2 items-center md:border-l-2 justify-center px-5 py-1 rounded-sm hover:bg-active_bg hover:text-my_blue group h-full duration-300">
+                <img src="/assets/filter-icon.svg" alt="filter-icon" class="cus-filter" />
+                Filters
+                </button> *@
+                </div>
+            </div>
+
+            <!-- dashboard-table -->
+            <!-- flex flex-col lg:flex-row lg:gap-16 gap-1 justify-center lg:justify-start lg:items-start -->
+            @if (changeReqList == null)
+            {
+                <p>Loading....</p>
+            }
+            else if (changeReqList.Count() == 0)
+            {
+                <p>No data found.</p>
+            }
+            else
+            {
+                <table class="bg-white px-4 py-5 block">
+                    <!-- h-[calc(100vh-20rem)] overflow-y-scroll -->
+                    <!-- 5rem/80px + 4.75rem/76px + 4.25rem/68px + 3.125rem/50px = 17.125rem/274px ~ 20rem/320px -->
+                    <!-- w-full -->
+
+                    <tbody class="block space-y-2">
+                        @foreach (var aCr in changeReqList)
+                        {
+                            var imgUrl = "/assets/" + @aCr.Status + ".svg";
+                            var riskLevelCss = "";
+                            if (@aCr.LevelOfRisk == "High")
+                            {
+                                riskLevelCss = "bg-red-100 text-red-600 text-xs py-1 px-2 font-semibold rounded";
+                            }
+                            else if (@aCr.LevelOfRisk == "Medium")
+                            {
+                                riskLevelCss = "bg-orange-100 text-orange-600 text-xs py-1 px-2 font-semibold rounded";
+                            }
+                            else if (@aCr.LevelOfRisk == "Low")
+                            {
+                                riskLevelCss = "bg-gray-100 text-zinc-500 text-xs py-1 px-2 font-semibold rounded";
+                            }
+
+                            DateTime customDate = new DateTime();
+
+                            if (aCr.LastModifiedAt != null)
+                            {
+                                customDate = (DateTime)aCr.LastModifiedAt;
+                            }
+                            else
+                            {
+                                customDate = (DateTime)aCr.CreatedAt;
+                            }
+
+                            <!-- 1st-TR-Critical -->
+                            <tr class="border border-light_gray py-5 px-10 block rounded-sm">
+                                <td class="flex justify-between items-center flex-col md:flex-row w-full gap-10">
+                                    <!-- edit-change -->
+
+                                    <div class="flex flex-col md:flex-row md:w-[95%] w-full gap-10 items-center">
+                                        <!-- edit-change -->
+                                        <!-- 1st-part -->
+                                        <div class="flex flex-col items-center w-20 whitespace-nowrap justify-center">
+                                            <img src="@imgUrl" alt="Submitted-icon" class="h-14 aspect-square" />
+                                            <span>@aCr.StatusDisplayName</span>
+                                        </div>
+
+                                        <!-- 2nd-part -->
+                                        <div class="flex flex-col gap-2 md:w-[calc(100%-5rem)] w-full">
+                                            <!-- 1st-content -->
+                                            <a style="cursor: pointer" class="hover:text-my_blue duration-300 text-lg w-fit font-semibold" @onclick="(()=>ShowCrDetails(aCr))">
+                                                @aCr.Subject
+                                            </a>
+
+                                            <!-- middle-content -->
+                                            <p class="text-sm">@aCr.ChangeRequestFor</p>
+
+                                            <!-- last-content -->
+                                            <div class="text-sm flex gap-4 w-full whitespace-nowrap overflow-x-scroll pb-2 pr-1 scroll">
+                                                <!-- edit-change -->
+
+                                                <p>
+                                                    <span class="text-my_gray"> Modified Date: </span>
+                                                    @customDate.ToString("D")
+                                                </p>
+
+                                                <p>
+                                                    <span class="text-my_gray"> Requester: </span>
+                                                    <b> @aCr.RequestorName, </b>
+                                                    @aCr.DepartName
+                                                </p>
+
+                                                <p>
+                                                    <span class="text-my_gray"> Level of Risk: </span>
+                                                    <button type="button"
+                                                            class="@riskLevelCss">
+                                                        <span>@aCr.LevelOfRisk</span>
+                                                    </button>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- view-button -->
+                                    <button @onclick="(()=>ShowCrDetails(aCr))"
+                                            class="px-4 py-1 border border-light_gray rounded-sm hover:bg-active_bg hover:text-my_blue duration-300">
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+
+        <Pagination @ref="childComponent"
+                    TotalCount="@TotalItems"
+                    CurrentPage="@CurrentPage"
+                    PageSize="@PageSize"
+                    TotalPages="@TotalPages"
+                    SetPageInfo="setPageInfo" />
+
+
+    </div>
+
+
+    <div class="relative z-[100] hidden" id="modal" aria-labelledby="modal-title" role="dialog" aria-modal="false">
+        <!--
+            Background backdrop, show/hide based on modal state.
+
+            Entering: "ease-out duration-300"
+            From: "opacity-0"
+            To: "opacity-100"
+            Leaving: "ease-in duration-200"
+            From: "opacity-100"
+            To: "opacity-0"
+        -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <!--
+                    Modal panel, show/hide based on modal state.
+
+                    Entering: "ease-out duration-300"
+                    From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    To: "opacity-100 translate-y-0 sm:scale-100"
+                    Leaving: "ease-in duration-200"
+                    From: "opacity-100 translate-y-0 sm:scale-100"
+                    To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                -->
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all">
+                    <div class="bg-white flex items-center md:justify-between p-5 rounded-sm relative flex-col md:flex-row gap-10 md:gap-1 justify-center">
+                        <!-- w-11/12 -->
+
+                        <div class="flex items-center gap-4 hover:text-my_blue duration-300 group md:w-1/2">
+                            <p class="line-clamp-1">
+                                @aCrInfromation.Subject
+                            </p>
+                        </div>
+
+                        <button type="button"
+                                class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
+                        @onclick="ModalClose">
+                            <img src="/assets/cross-icon.svg" alt="cross-icon" />
+                        </button>
+                    </div>
+
+                    <main class="flex gap-3 flex-col lg:flex-row">
+                        <!-- left-aside -->
+                        <aside class="h-fit bg-white lg:w-72 w-full mt-2">
+                            <!-- w-72 -->
+
+                            <ul class="">
+                                <!-- 1 -->
+                                @{
+                                    var partOne = "Current";
+                                    var partTwo = "Approver";
+                                    var partThree = "Assign";
+                                }
+                                <li class="border-b border-main_bg group whitespace-nowrap" @onclick="(()=>ShowCrPart(partOne))">
+                                    <a style="cursor:pointer;" class="flex gap-5 group-hover:bg-active_bg duration-300 ease-in-out">
+                                        <div class="w-1 group-hover:bg-my_blue duration-300 ease-in-out">
+                                            <!-- active-aside -->
+                                        </div>
+
+                                        <p class="py-3 pr-5">
+                                            <!-- condition code here -->
+                                            <div class="truncate">@aCrInfromation.Subject</div>
+                                        </p>
+                                    </a>
+                                </li>
+                                @if (getPermission["crapprovalflow/crapprovalflowbycrid"])
+                                {
+                                    <!-- 2 -->
+                                    <li class="border-b border-main_bg group whitespace-nowrap" @onclick="(()=>ShowCrPart(partTwo))">
+                                        <a style="cursor:pointer;" class="flex gap-5 group-hover:bg-active_bg duration-300 ease-in-out">
+                                            <div class="w-1 group-hover:bg-my_blue duration-300 ease-in-out">
+                                                <!-- active-aside -->
+                                            </div>
+
+                                            <p class="py-3 pr-5">
+                                                <!-- condition code here -->
+                                                Approver
+                                            </p>
+                                        </a>
+                                    </li>
+                                }
+
+                                @if (getPermission["assigntoemployee/getassignemployeeall"])
+                                {
+                                    <!-- 3 -->
+                                    <li class="border-b border-main_bg group whitespace-nowrap" @onclick="(()=>ShowCrPart(partThree))">
+                                        <a style="cursor:pointer;" class="flex gap-5 group-hover:bg-active_bg duration-300 ease-in-out">
+                                            <div class="w-1 group-hover:bg-my_blue duration-300 ease-in-out">
+                                                <!-- active-aside -->
+                                            </div>
+
+                                            <p class="py-3 pr-5">
+                                                <!-- condition code here -->
+                                                Assign
+                                            </p>
+                                        </a>
+                                    </li>
+                                }
+
+
+                                <!-- 4 -->
+                                @*<li class="border-b border-main_bg group whitespace-nowrap">
+                            <a style="cursor:pointer;" class="flex gap-5 group-hover:bg-active_bg duration-300 ease-in-out">
+                            <div class="w-1 group-hover:bg-my_blue duration-300 ease-in-out">
+                            <!-- active-aside -->
+                            </div>
+
+                            <p class="py-3 pr-5">
+                            <!-- condition code here -->
+                            Download
+                            </p>
+                            </a>
+                            </li>*@
+                            </ul>
+                        </aside>
+                        @if (CurrentPartActive == partOne)
+                        {
+
+                            <section class="bg-white p-4 md:p-5 mt-2 mb-5 flex-1 middle-box-shadow space-y-5 self-stretch w-[600px]">
+                                <!-- h-[85vh] -->
+                                <div class="h-[690px] overflow-y-scroll scroll">
+                                    <!-- FORM -->
+                                    <div class="flex-1">
+                                        <FullCRShow aCrInfromation="@aCrInfromation" fileNames="@fileNames" FilePaths="@FilePaths" />
+                                        <!-- form-btn-out of form start  -->
+                                    </div>
+                                </div>
+                            </section>
+
+                        }
+                        else if (CurrentPartActive == partTwo)
+                        {
+                            <ApprovalFlow ApprovalData="@ApprovalData" />
+                        }
+                        else if (CurrentPartActive == partThree)
+                        {
+                            <AssignedEmployee CrId="@aCrInfromation.Id" />
+                        }
+
+                        <!-- right-aside -->
+                        <aside class="lg:w-80 w-full mt-2 mb-5">
+                            <!-- py-3 -->
+                            <RequesterInfo ACrInfromation="@aCrInfromation" />
+                            @if (getPermission["crapprovalflow/crapprovalflowbycrid"])
+                            {
+                                <ApproveHistory ApprovalData="@ApprovalData" />
+                            }
+
+                        </aside>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+
+
+
+
+@code {
+    [Parameter]
+    public long CrId { get; set; } = 0;
+
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private Pagination? childComponent;
+
+    private PaginationModel pagination = new PaginationModel();
+    public int PageSize { get; set; } = 10;
+    public int TotalItems { get; set; }
+    public int CurrentPage { get; set; }
+    public int TotalPages { get; set; }
+
+
+    private List<StatusWiseTotalCrResponse> statusWiseTotalCrList { get; set; }
+    private List<ChangeRequestModel> changeReqList { get; set; }
+    private ChangeRequestListRequestModel filter { get; set; }
+
+    private ChangeRequestModel aCrInfromation { get; set; }
+
+    private string CurrentPartActive { get; set; }
+    private string IsActiveCss { get; set; }
+
+    public List<CrApprovalFlow> ApprovalData { get; set; }
+
+    private string userRole { get; set; } = "USER";
+
+    IDictionary<string, bool> getPermission { get; set; }
+
+    public List<string> fileNames = new List<string>();
+    public List<string> FilePaths = new List<string>();
+    private string imgUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        user = new UserModel();
+        filter = new ChangeRequestListRequestModel();
+        aCrInfromation = new ChangeRequestModel();
+        CurrentPartActive = "Current";
+        IsActiveCss = "group-hover:bg-active_bg";
+        ApprovalData = new List<CrApprovalFlow>();
+        userRole = string.Empty;
+
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+            
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if (permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+            List<string> fileNames = new List<string>();
+            List<string> FilePaths = new List<string>();
+            imgUrl = await localStorage.GetItemAsync<string>("imgUrl");
+            var haveid = CrId;
+
+            userRole = await localStorage.GetItemAsync<string>("roles");
+
+            await getStatusWiseTotalCR();
+
+            await LoadData(CurrentPage + 1, PageSize);
+
+        }
+    }
+
+    private async Task getStatusWiseTotalCR()
+    {
+        _spinnerService.Show();
+        var data = await _statusWiseTotalCrGenericService.GetAllAsync("ChangeRequest/MyApprovedCrTotalStatus");
+        if (data.Data != null)
+        {
+            statusWiseTotalCrList = data.Data;
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task OnPageChangedAsync(int newPageNumber)
+    {
+        await Task.Run(() => { CurrentPage = newPageNumber; });
+        await LoadData(CurrentPage, PageSize);
+    }
+
+    public async Task setPageInfo(PaginationModel setVal)
+    {
+        await LoadData(setVal.pageNumber, setVal.pageSize);
+    }
+
+    private async Task LoadData(int pageNumber, int pageSize)
+    {
+        _spinnerService.Show();
+        if (!(getPermission["changerequest/myapprovedcrlist"]))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("permission denied.");
+            return;
+        }
+        filter.PageNumber = pageNumber;
+        filter.PageSize = pageSize;
+        var response = await _changeRequirementService.GetAllCrList("ChangeRequest/MyApprovedCrList", filter);
+        if (response.StatusCode == 200)
+        {
+            changeReqList = response.Data.item;
+            TotalItems = response.Data.totalRecords;
+            TotalPages = response.Data.totalPages;
+            CurrentPage = pageNumber;
+            if (childComponent != null)
+            {
+                childComponent.pageRange(CurrentPage, TotalPages);
+            }
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await LoadData(CurrentPage, PageSize);
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task getStatusWiseCrList(string status = "")
+    {
+        filter.Status = status;
+        await LoadData(1, PageSize);
+    }
+    
+    private async Task getAllFiles(long crid)
+    {
+        _spinnerService.Show();
+        var data = await _changeRequirementService.GetAllFiles($@"ChangeRequest/GetAllFiles/{crid}");
+        if (data.Data != null)
+        {
+            foreach (var aImg in data.Data)
+            {
+                fileNames.Add(aImg.FileName);
+                FilePaths.Add(imgUrl + aImg.FileName);
+            }
+        }
+        _spinnerService.Hide();
+    }
+    private async Task ShowCrDetails(ChangeRequestModel aCr)
+    {
+        var crDetails = aCr;
+        if (crDetails != null)
+        {
+            aCrInfromation = crDetails;
+        }
+        CurrentPartActive = "Current";
+        await CrApprovalFlowList();
+        await getAllFiles(aCr.Id);
+        await js.InvokeVoidAsync("modalOpen");
+    }
+
+    private async Task ModalClose()
+    {
+        await js.InvokeVoidAsync("modalClose");
+    }
+
+    private async Task ShowCrPart(string part)
+    {
+        CurrentPartActive = part;
+    }
+
+    private async Task SearchOptionMethoh()
+    {
+        await LoadData(CurrentPage, PageSize);
+    }
+
+    private async Task CrApprovalFlowList()
+    {
+        _spinnerService.Show();
+        if (!(getPermission["crapprovalflow/crapprovalflowbycrid"]))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("permission denied.");
+            return;
+        }
+        var response = await _crApprovalFlowService.GetAllAsync("CrApprovalFlow/CrApprovalFlowByCrId/" + aCrInfromation.Id);
+        if (response.StatusCode == 200)
+        {
+            ApprovalData = response.Data;
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await CrApprovalFlowList();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task ApprocedCr()
+    {
+        _spinnerService.Show();
+        if (!(getPermission["crstatus/updatecrapprovedstatus"]))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("permission denied.");
+            return;
+        }
+        var response = await _changeRequirementService.ChangeCrStaurs("CrStatus/UpdateCRApprovedStatus/" + aCrInfromation.Id);
+        if (response.StatusCode == 200)
+        {
+            await showMessage(response);
+            await CrApprovalFlowList();
+            await getStatusWiseTotalCR();
+            await LoadData(CurrentPage, PageSize);
+            await ModalClose();
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await ApprocedCr();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+    private async Task RejectCr()
+    {
+        _spinnerService.Show();
+        if (!(getPermission["crstatus/updatecrrejectedstatus"]))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("permission denied.");
+            return;
+        }
+        var response = await _changeRequirementService.ChangeCrStaurs("CrStatus/UpdateCRRejectedStatus/" + aCrInfromation.Id);
+        if (response.StatusCode == 200)
+        {
+            await showMessage(response);
+            await CrApprovalFlowList();
+            await getStatusWiseTotalCR();
+            await LoadData(CurrentPage, PageSize);
+            await ModalClose();
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await RejectCr();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess(apiResponse.Message);
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            toastService.ShowError(apiResponse.Message);
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+
+
+}

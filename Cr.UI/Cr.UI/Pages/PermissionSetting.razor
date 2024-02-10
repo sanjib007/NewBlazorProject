@@ -1,0 +1,1540 @@
+﻿@page "/MenuPermission"
+
+
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.CrStatus;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using System.Globalization;
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+@using System.Text.RegularExpressions;
+@using Newtonsoft.Json;
+@using Cr.UI.Data.StateManagement;
+@inject SpinnerState _spinnerService;
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject IJSRuntime js
+@inject IUserService userService
+@inject IGenericService<StatusWiseTotalCrResponse> _statusWiseTotalCrGenericService;
+@inject IGenericService<CrApprovalFlow> _crApprovalFlowService;
+@inject IChangeRequirementService _changeRequirementService;
+@inject IMenuAndPermissionService _menuPermissionService;
+
+
+<Title Value="Menu And Permission" />
+
+
+
+@if(getPermission == null)
+{
+	
+}
+else if(getPermission.Count == 0)
+{
+	
+}
+else{
+<div class="h-fit w-[80%] mt-20 ml-[12px]">
+    <!-- mr-2 -->
+    <!-- container -->
+    <!-- upper-section -->
+    <section class="bg-white flex flex-col md:flex-row gap-5 md:items-center items-start justify-between px-6 py-3 mb-2 rounded-sm">
+        <div>
+            <p class="text-sm pb-2"><span class="text-my_gray">Change Request / </span> All CR's</p>
+
+            <a href="/index"
+               class="flex items-center text-xl gap-4 hover:text-my_blue duration-300 rounded-full group">
+                <span>
+                    <img src="/assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
+                </span>
+                Menu And Permission Settings
+            </a>
+        </div>
+    </section>
+
+        <!--Accordion start-->
+
+		  <section class="mb-2 space-y-2">
+
+                <details class="group py-5 px-6 bg-white mx-auto rounded-sm">
+
+                    <summary
+                        class="flex justify-between items-center font-medium cursor-pointer list-none select-none hover:text-my_blue duration-300 text-lg">
+                        <span> Menu Part </span>
+
+                        <img src="assets/down-arrow.svg"
+                            class="aspect-square w-3 transition-all duration-300 group-open:rotate-180 invert-0 cus-filter" />
+                    </summary>
+
+					@if (AllMenuList == null)
+					{
+						<p class="mt-3">Loading...</p>
+					}
+					else if(AllMenuList.Count == 0)
+					{
+						<p class="mt-3">No Data Found.</p>
+					}
+					else
+					{
+                    <div class="overflow-x-scroll scroll  mt-3 group-open:animate-fadeIn duration-300 transition-all">
+                        <table
+                            class="w-full whitespace-nowrap overflow-x-scroll scroll text-black border border-light_gray rounded">
+                            <thead class="bg-[#FAFAFA] text-center">
+                                <tr class="border-b border-light_gray">
+                                    <th class="border-r border-light_gray ">
+                                        <button
+                                            class="py-2 px-3 flex gap-2 items-center justify-center w-full hover:bg-active_bg duration-300 ease-in-out">
+                                            Menu Name (Id)
+                                        </button>
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Menu Icon
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Menu Parent Id
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Menu Sequence
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Is Visible
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Menu Show/Hide
+                                    </th>
+                                    <th class="py-2 px-3  ">
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white text-center">
+								@foreach (var aInfo in AllMenuList)
+								{
+                                <tr class="border-b border-light_gray">
+                                    <td class="py-2 px-3 border-r border-light_gray text-start">
+                                        <span>@aInfo.MenuName</span>
+									<!-- &nbsp; -->
+										(@aInfo.Id)
+                                    </td>
+                                    <td class="py-2 px-3 border-r border-light_gray ">
+                                        @aInfo.MenuIcon
+                                    </td>
+                                    <td class="py-2 px-3 border-x border-light_gray ">
+                                        @aInfo.ParentId
+                                    </td>
+                                    <td class="py-2 px-3 border-r border-light_gray ">
+                                        @aInfo.MenuSequence
+                                    </td>
+                                    <td class="py-2 px-3 border-r border-light_gray text-center">
+                                        @aInfo.IsVisible
+                                    </td>
+                                    <td class="py-2 px-3 border-r border-light_gray text-center">
+                                        @aInfo.ShowInMenuItem
+                                    </td>
+                                    <td class="py-2 px-3 text-center">
+                                        <button
+                                            class="bg-[#0038ff] bg-opacity-10 text-[#0038ff] text-xs py-1 px-2 font-semibold rounded-full pointer" @onclick="(()=>ShowMenuDetails(aInfo, 1))">
+                                            Update
+                                        </button>
+                                    </td>
+                                </tr>
+								}
+                            </tbody>
+                        </table>
+                    </div>
+					}
+                </details>
+                <!--  -->
+                <details class="group py-5 px-6 bg-white mx-auto rounded-sm">
+
+                    <summary
+                        class="flex justify-between items-center font-medium cursor-pointer list-none select-none hover:text-my_blue duration-300 text-lg">
+                        <span> All Permission Part </span>
+
+                        <img src="assets/down-arrow.svg"
+                            class="aspect-square w-3 transition-all duration-300 group-open:rotate-180 invert-0 cus-filter" />
+                    </summary>
+
+					@if (AllMenuList == null)
+					{
+						<p class="mt-3">Loading...</p>
+					}
+					else if(AllMenuList.Count == 0)
+					{
+						<p class="mt-3">No Data Found.</p>
+					}
+					else
+					{
+                    <div class="overflow-x-scroll scroll  mt-3 group-open:animate-fadeIn duration-300 transition-all">
+                        <table
+                            class="w-full whitespace-nowrap overflow-x-scroll scroll text-black border border-light_gray rounded">
+                            <thead class="bg-[#FAFAFA] text-center">
+                                <tr class="border-b border-light_gray">
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Feature Name
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Allow Anonymous
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Is Visible
+                                    </th>
+                                    <th class="py-2 px-3">
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white text-center">
+								@foreach (var aInfo in AllPermission)
+								{
+                                <tr class="border-b border-light_gray">
+                                    <td class="py-2 px-3 border-r border-light_gray text-start">
+                                        @aInfo.FeatureName
+                                    </td>
+                                    <td class="py-2 px-3 border-r border-light_gray text-center">
+                                        @aInfo.AllowAnonymous
+                                    </td>
+                                    <td class="py-2 px-3 border-r border-light_gray text-center">
+                                        @aInfo.IsVisible
+                                    </td>
+                                    <td class="py-2 px-3 text-center">
+                                        <button
+                                            class="bg-[#0038ff] bg-opacity-10 text-[#0038ff] text-xs py-1 px-2 font-semibold rounded-full pointer"
+                                            @onclick="(()=>ShowMenuDetails(aInfo, 2))">
+                                            Update
+                                        </button>
+                                    </td>
+                                </tr>
+								}
+                            </tbody>
+                        </table>
+                    </div>
+					}
+                </details>
+                <!--  -->
+                <details class="group py-5 px-6 bg-white mx-auto rounded-sm">
+
+                    <summary
+                        class="flex justify-between items-center font-medium cursor-pointer list-none select-none hover:text-my_blue duration-300 text-lg">
+                        <span> All Anonymous Permission Part </span>
+
+                        <img src="assets/down-arrow.svg"
+                            class="aspect-square w-3 transition-all duration-300 group-open:rotate-180 invert-0 cus-filter" />
+                    </summary>
+
+					@if (AllAnonymousPermission == null)
+					{
+						<p class="mt-3">Loading...</p>
+					}
+					else if(AllAnonymousPermission.Count == 0)
+					{
+						<p class="mt-3">No Data Found.</p>
+					}
+					else
+					{
+                    <div class="overflow-x-scroll scroll  mt-3 group-open:animate-fadeIn duration-300 transition-all">
+                        <table
+                            class="w-full whitespace-nowrap overflow-x-scroll scroll text-black border border-light_gray rounded">
+                            <thead class="bg-[#FAFAFA] text-center">
+                                <tr class="border-b border-light_gray">
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Feature Name
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Allow Anonymous
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray">
+                                        Is Visible
+                                    </th>
+                                    <th class="py-2 px-3">
+                                        Action
+                                    </th>
+                                    <!-- &nbsp; -->
+                                    <!-- <th class="py-2 px-3 ">Edit - Delete</th> -->
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white text-center">
+								@foreach (var aInfo in AllAnonymousPermission)
+								{
+                                <tr class="border-b border-light_gray">
+                                    <td class="py-2 px-3 border-r border-light_gray text-start">
+                                        @aInfo.FeatureName
+                                    </td>
+                                    <td class="py-2 px-3 border-r border-light_gray text-center">
+                                        @aInfo.AllowAnonymous
+                                    </td>
+                                    <td class="py-2 px-3 border-r border-light_gray text-center">
+                                        @aInfo.IsVisible
+                                    </td>
+                                    <td class="py-2 px-3 text-center">
+                                        <button
+                                            class="bg-[#0038ff] bg-opacity-10 text-[#0038ff] text-xs py-1 px-2 font-semibold rounded-full pointer" @onclick="(()=>ShowMenuDetails(aInfo, 3))">
+                                            Update
+                                        </button>
+                                    </td>
+                                </tr>
+								}
+                            </tbody>
+                        </table>
+                    </div>
+					}
+                </details>
+
+            </section>
+
+        <!--Accordion End-->
+
+		<!--Modal part start-->
+
+			<div class="relative z-[100] hidden" id="modal" aria-labelledby="modal-title" role="dialog" aria-modal="false">
+				<!--
+					Background backdrop, show/hide based on modal state.
+
+					Entering: "ease-out duration-300"
+					From: "opacity-0"
+					To: "opacity-100"
+					Leaving: "ease-in duration-200"
+					From: "opacity-100"
+					To: "opacity-0"
+				-->
+				<div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+				<div class="fixed inset-0 z-10 overflow-y-auto">
+					<div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+						<div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all">
+							<div class="bg-white flex items-center md:justify-between p-5 rounded-sm relative flex-col md:flex-row gap-10 md:gap-1 justify-center">
+								<!-- w-11/12 -->
+
+								<div class="flex items-center gap-4 hover:text-my_blue duration-300 group md:w-1/2">
+									<h2 class="line-clamp-1">
+										CR Menu Update Modal
+									</h2>
+								</div>
+
+								<button type="button" class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
+								@onclick="ModalClose">
+									<img src="/assets/cross-icon.svg" alt="cross-icon" />
+								</button>
+							</div>
+
+							<main class="flex gap-3 flex-col lg:flex-row">
+						
+
+									<!-- FORM -->
+									<div class="flex-1 lg:pr-2 md:px-5 px-1">
+										<!-- check -->
+										<!-- page-2=form-1 - start -->
+
+									@if(showPart is 1)
+									{
+									<EditForm class="py-5" id="Menu-form-btn" Model="@MenuUpdateRequset" OnValidSubmit="SaveReq">
+											<!-- action="#" -->
+											<!-- page-5=form - start -->
+											<div class="">
+
+												<!-- 1st-textarea -->
+												<div class="">
+
+													<label for="MenuName" class="text-my_gray pt-3 font-semibold">
+														Menu Name
+													</label>
+
+													<input type="text" id="MenuName" name="MenuName" @bind="MenuUpdateRequset.MenuName" placeholder="Write Your MenuName"
+														   class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+													<!-- value="Retail Reference Point (RRP) Management System" -->
+													<p class="text-rose-600"><ValidationMessage For="@(()=>MenuUpdateRequset.MenuName)" /></p>
+												</div>
+
+												<!-- 1st-textarea -->
+												<div class="">
+
+													<label for="MenuIcon" class="text-my_gray pt-3 font-semibold">
+														Menu Icon
+													</label>
+
+													<input type="text" id="MenuIcon" name="MenuIcon" @bind="MenuUpdateRequset.MenuIcon" placeholder="Write Your MenuIcon"
+														   class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+													<!-- value="Retail Reference Point (RRP) Management System" -->
+													<p class="text-rose-600"><ValidationMessage For="@(()=>MenuUpdateRequset.MenuIcon)" /></p>
+												</div>
+												<!-- 1st-textarea -->
+												<div class="">
+
+													<label for="ParentId" class="text-my_gray pt-3 font-semibold">
+														Menu Parent Id
+													</label>
+
+													<input type="number" id="ParentId" name="ParentId" @bind="MenuUpdateRequset.ParentId" placeholder="Write Your ParentId"
+														   class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+													<!-- value="Retail Reference Point (RRP) Management System" -->
+													<p class="text-rose-600"><ValidationMessage For="@(()=>MenuUpdateRequset.ParentId)" /></p>
+												</div>
+												<!-- 1st-textarea -->
+												<div class="">
+
+													<label for="MenuSequence" class="text-my_gray pt-3 font-semibold">
+														Menu Sequence Number
+													</label>
+
+													<input type="text" id="MenuSequence" name="MenuSequence" @bind="MenuUpdateRequset.MenuSequence" placeholder="Write Your Menu Sequence"
+														   class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+													<!-- value="Retail Reference Point (RRP) Management System" -->
+													<p class="text-rose-600"><ValidationMessage For="@(()=>MenuUpdateRequset.MenuSequence)" /></p>
+												</div>
+
+												<div class="pt-3 flex md:gap-5 gap-3 flex-col md:flex-row">
+													<!-- check -->
+													<label for="IsVisible" class="text-my_gray font-semibold">Is Visible :</label>
+													<!-- check -->
+													<InputRadioGroup Name="IsVisible" @bind-Value="@MenuUpdateRequset.IsVisible">
+													<ul class="space-x-5 flex">
+
+														<!-- 1-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Yes" Value="@(true)" />
+															<!-- check -->
+															<label for="High" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																Yes
+															</label>
+														</li>
+
+														<!-- 2-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="No" Value="@(false)" /> 
+															<!-- check -->
+															<label for="Medium" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																	No
+															</label>
+														</li>
+													</ul>
+													</InputRadioGroup>
+													<br/>
+													<p class="text-rose-600"><ValidationMessage For="@(()=>MenuUpdateRequset.IsVisible)" /></p>
+            
+												</div>
+
+												<div class="pt-3 flex md:gap-5 gap-3 flex-col md:flex-row">
+													<!-- check -->
+													<label for="ShowInMenuItem" class="text-my_gray font-semibold">Show In Menu Item :</label>
+													<!-- check -->
+													<InputRadioGroup Name="ShowInMenuItem" @bind-Value="@MenuUpdateRequset.ShowInMenuItem">
+													<ul class="space-x-5 flex">
+
+														<!-- 1-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Yes" Value="@(true)" />
+															<!-- check -->
+															<label for="High" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																Yes
+															</label>
+														</li>
+
+														<!-- 2-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="No" Value="@(false)" /> 
+															<!-- check -->
+															<label for="Medium" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																	No
+															</label>
+														</li>
+													</ul>
+													</InputRadioGroup>
+													<br/>
+													<p class="text-rose-600"><ValidationMessage For="@(()=>MenuUpdateRequset.ShowInMenuItem)" /></p>
+            
+												</div>
+										
+											</div>
+											<div class=" flex md:gap-3 gap-1 justify-end  mt-8">
+												<button type="submit"
+														class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+													<!-- check -->
+													Update
+
+												</button>
+											</div>
+										</EditForm>
+									}
+									else if(showPart is 2)
+									{
+										<EditForm class="py-5" id="Menu-form-btn" Model="@PermissionUpdateRequest" OnValidSubmit="SaveReq">
+											<!-- action="#" -->
+											<!-- page-5=form - start -->
+											<div class="">
+
+												<!-- 1st-textarea -->
+												<div class="">
+
+													<label for="FeatureName" class="text-my_gray pt-3 font-semibold">
+														Feature Name
+													</label>
+
+													<input type="text" id="MenuName" name="MenuName" @bind="PermissionUpdateRequest.FeatureName" placeholder="Write Your Feature Name"
+														   class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+													<!-- value="Retail Reference Point (RRP) Management System" -->
+													<p class="text-rose-600"><ValidationMessage For="@(()=>PermissionUpdateRequest.FeatureName)" /></p>
+												</div>
+
+												<div class="pt-3 flex md:gap-5 gap-3 flex-col md:flex-row">
+													<!-- check -->
+													<label for="IsVisible" class="text-my_gray font-semibold">Is Visible :</label>
+													<!-- check -->
+													<InputRadioGroup Name="IsVisible" @bind-Value="@PermissionUpdateRequest.IsVisible">
+													<ul class="space-x-5 flex">
+
+														<!-- 1-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Yes" Value="@(true)" />
+															<!-- check -->
+															<label for="High" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																Yes
+															</label>
+														</li>
+
+														<!-- 2-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="No" Value="@(false)" /> 
+															<!-- check -->
+															<label for="Medium" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																	No
+															</label>
+														</li>
+													</ul>
+													</InputRadioGroup>
+													<br/>
+													<p class="text-rose-600"><ValidationMessage For="@(()=>PermissionUpdateRequest.IsVisible)" /></p>
+            
+												</div>
+
+												<div class="pt-3 flex md:gap-5 gap-3 flex-col md:flex-row">
+													<!-- check -->
+													<label for="ShowInMenuItem" class="text-my_gray font-semibold">Allow Anonymous :</label>
+													<!-- check -->
+													<InputRadioGroup Name="ShowInMenuItem" @bind-Value="@PermissionUpdateRequest.AllowAnonymous">
+													<ul class="space-x-5 flex">
+
+														<!-- 1-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Yes" Value="@(true)" />
+															<!-- check -->
+															<label for="High" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																Yes
+															</label>
+														</li>
+
+														<!-- 2-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="No" Value="@(false)" /> 
+															<!-- check -->
+															<label for="Medium" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																	No
+															</label>
+														</li>
+													</ul>
+													</InputRadioGroup>
+													<br/>
+													<p class="text-rose-600"><ValidationMessage For="@(()=>PermissionUpdateRequest.AllowAnonymous)" /></p>
+            
+												</div>
+										
+											</div>
+											<div class=" flex md:gap-3 gap-1 justify-end  mt-8">
+												<button type="submit"
+														class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+													<!-- check -->
+													Update
+
+												</button>
+											</div>
+										</EditForm>
+									}
+									else if(showPart is 3)
+									{
+										<EditForm class="py-5" id="Menu-form-btn" Model="@anonymousPermissionRequest" OnValidSubmit="SaveReq">
+											<!-- action="#" -->
+											<!-- page-5=form - start -->
+											<div class="">
+
+												<!-- 1st-textarea -->
+												<div class="">
+
+													<label for="FeatureName" class="text-my_gray pt-3 font-semibold">
+														Feature Name
+													</label>
+
+													<input type="text" id="MenuName" name="MenuName" @bind="anonymousPermissionRequest.FeatureName" placeholder="Write Your Feature Name"
+														   class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+													<!-- value="Retail Reference Point (RRP) Management System" -->
+													<p class="text-rose-600"><ValidationMessage For="@(()=>PermissionUpdateRequest.FeatureName)" /></p>
+												</div>
+
+												<div class="pt-3 flex md:gap-5 gap-3 flex-col md:flex-row">
+													<!-- check -->
+													<label for="IsVisible" class="text-my_gray font-semibold">Is Visible :</label>
+													<!-- check -->
+													<InputRadioGroup Name="IsVisible" @bind-Value="@anonymousPermissionRequest.IsVisible">
+													<ul class="space-x-5 flex">
+
+														<!-- 1-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Yes" Value="@(true)" />
+															<!-- check -->
+															<label for="High" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																Yes
+															</label>
+														</li>
+
+														<!-- 2-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="No" Value="@(false)" /> 
+															<!-- check -->
+															<label for="Medium" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																	No
+															</label>
+														</li>
+													</ul>
+													</InputRadioGroup>
+													<br/>
+													<p class="text-rose-600"><ValidationMessage For="@(()=>anonymousPermissionRequest.IsVisible)" /></p>
+            
+												</div>
+
+												<div class="pt-3 flex md:gap-5 gap-3 flex-col md:flex-row">
+													<!-- check -->
+													<label for="ShowInMenuItem" class="text-my_gray font-semibold">Allow Anonymous :</label>
+													<!-- check -->
+													<InputRadioGroup Name="ShowInMenuItem" @bind-Value="@anonymousPermissionRequest.AllowAnonymous">
+													<ul class="space-x-5 flex">
+
+														<!-- 1-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Yes" Value="@(true)" />
+															<!-- check -->
+															<label for="High" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																Yes
+															</label>
+														</li>
+
+														<!-- 2-checkbox -->
+														<li class="flex items-center gap-3 ">
+																<InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="No" Value="@(false)" /> 
+															<!-- check -->
+															<label for="Medium" class="text-my_gray block cursor-pointer">
+																<!-- check -->
+																	No
+															</label>
+														</li>
+													</ul>
+													</InputRadioGroup>
+													<br/>
+													<p class="text-rose-600"><ValidationMessage For="@(()=>anonymousPermissionRequest.AllowAnonymous)" /></p>
+            
+												</div>
+										
+											</div>
+											<div class=" flex md:gap-3 gap-1 justify-end mt-8">
+												<button type="submit"
+														class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+													<!-- check -->
+													Update
+
+												</button>
+											</div>
+										</EditForm>
+									}
+									</div>
+								</main>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		<!--Modal part end-->
+
+
+	    <section class="bg-white flex flex-col md:flex-row gap-5 md:items-center items-start justify-between px-6 py-3 mb-2 rounded-sm">
+			<div>
+				<a href="/index"
+				   class="text-xl hover:text-my_blue duration-300">
+					Menu and Permission Access For Every Role OR Every User
+				</a>
+			</div>
+		</section>
+
+        <section class="bg-white mb-2 px-7 py-4 rounded-sm">
+
+				<div class="flex gap-3 items-end max-lg:items-center justify-center mb-3 max-lg:flex-col">
+
+					<div class="flex gap-3 items-center justify-center max-md:flex-col">
+
+						<div class="flex flex-col gap-2  justify-center">
+
+							<label for="roles" class=" block text-base font-medium text-[#07074D]">
+								Select Role Name
+							</label>
+
+							<select id="roles" @bind=SelectedRole
+									class="border border-light_gray py-1 px-3 rounded-sm flex items-center justify-center ">
+
+								<option selected disabled>Choose a Role</option>
+
+								@foreach (var arole in RoleNames)
+								{
+									<option value="@arole" class="hover:text-white checked:text-white p-1 text-md hover:bg-my_blue checked:bg-my_blue">@arole</option>
+								}
+
+							</select>
+
+						</div>
+
+						<div class="flex flex-col gap-2  justify-center">
+
+							<label for="user_id" class=" block text-base font-medium text-[#07074D]">
+								User Id
+							</label>
+
+							<div class="flex w-full items-stretch relative">
+								<input type="text" @bind-value=SearchText @oninput=HandleInput
+									   placeholder="Search..."
+									   class="px-2 py-1 border-y border-l  w-full rounded-l-sm" id="user_id" />
+
+								<button type="submit" class="border px-2 py-1 group bg-active_bg rounded-r-sm">
+									<img src="/assets/search-icon.svg" alt="search-icon" class="cus-filter" />
+								</button>
+
+								<div class="w-full absolute top-[33px] left-0 bg-white max-h-[300px] overflow-y-scroll scroll  rounded border shadow-md">
+
+									@if (searchResult is not null)
+									{
+										<ul class="flex flex-col gap-1">
+											@if (searchResult.Any())
+											{
+												@foreach (var aText in searchResult)
+												{
+													<li class="p-2 hover:cursor-pointer hover:bg-active_bg transition ease-in-out duration-300 border-b break-words" @onclick=@(_ => SelectCustomer(aText))>
+														@aText
+													</li>
+												}
+											}
+
+											else
+											{
+												<li class="disabled text-red-600 p-2 break-words">No results</li>
+											}
+										</ul>
+									}
+
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
+
+					<div class="flex gap-3 items-center justify-center max-md:flex-col">
+						<button @onclick="GetAllPermissionUserOrRoleWise"
+								class="block mb-[1px] bg-my_blue md:px-3 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+							Get Permission
+						</button>
+
+						@if (getPermission["menusetupandpermission/deletepermissionsetuproleanduserwise"])
+						{
+							<button class="block mb-[1px] bg-red-600 md:px-3 px-2 py-1 rounded text-white hover:bg-red-800 ease-in-out duration-300">
+								Delete Permission
+							</button>
+						}
+					</div>
+
+				</div>
+
+
+
+			<hr />
+
+			@if (SetAllMenuList == null)
+			{
+
+			}
+			else if (SetAllMenuList.Count == 0)
+			{
+
+			}
+			else
+			{
+				<div class="overflow-x-scroll scroll my-5">
+					<table class="w-full whitespace-nowrap overflow-x-scroll scroll text-black border border-light_gray rounded">
+						<thead class="bg-[#FAFAFA] text-center">
+							<tr class="border-b border-light_gray">
+								<th class="py-2 px-3 border-r border-light_gray">
+									Is Checked
+								</th>
+								<th class="border-r border-light_gray">
+									<button class="py-2 px-3 flex gap-2 items-center justify-center w-full hover:bg-active_bg duration-300 ease-in-out">
+										Menu Name (Id)
+									</button>
+								</th>
+								<th class="py-2 px-3 border-r border-light_gray">
+									Menu Icon
+								</th>
+								<th class="py-2 px-3 border-r border-light_gray">
+									Menu Parent Id
+								</th>
+								<th class="py-2 px-3 border-r border-light_gray">
+									Menu Sequence
+								</th>
+								<th class="py-2 px-3 border-r border-light_gray">
+									Is Visible
+								</th>
+								<th class="py-2 px-3 border-r border-light_gray">
+									Menu Show/Hide
+								</th>
+
+							</tr>
+						</thead>
+						<tbody class="bg-white text-center">
+							@foreach (var aInfo in SetAllMenuList)
+							{
+								<tr class="border-b border-light_gray">
+									<td class="py-2 px-3 border-r border-light_gray">
+										<label class="relative inline-flex cursor-pointer items-center">
+											<input id="switch-3" type="checkbox" class="peer sr-only"
+												   checked="@aInfo.IsChecked" @onclick="@(() => CheckboxChanged(aInfo))" />
+											<label for="switch-3" class="hidden"></label>
+											<div class="peer h-4 w-11 rounded border bg-slate-200 after:absolute after:-top-1 after:left-0 after:h-6 after:w-6 after:rounded-md after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-300 peer-checked:after:translate-x-full peer-focus:ring-green-300">
+											</div>
+										</label>
+									</td>
+									<td class="py-2 px-3 border-r border-light_gray text-start">
+										<span>@aInfo.MenuName</span>
+										(@aInfo.Id)
+									</td>
+									<td class="py-2 px-3 border-r border-light_gray ">
+										@aInfo.MenuIcon
+									</td>
+									<td class="py-2 px-3 border-x border-light_gray ">
+										@aInfo.ParentId
+									</td>
+									<td class="py-2 px-3 border-r border-light_gray ">
+										@aInfo.MenuSequence
+									</td>
+									<td class="py-2 px-3 border-r border-light_gray text-center">
+										@aInfo.IsVisible
+									</td>
+									<td class="py-2 px-3 border-r border-light_gray text-center">
+										@aInfo.ShowInMenuItem
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+
+			}
+
+			@if (SetAllPermission == null)
+			{
+
+			}
+			else if (SetAllPermission.Count == 0)
+			{
+
+			}
+			else
+			{
+				<div class="overflow-x-scroll scroll my-5">
+					<table class="w-full whitespace-nowrap overflow-x-scroll scroll text-black border border-light_gray rounded">
+						<thead class="bg-[#FAFAFA] text-center">
+							<tr class="border-b border-light_gray">
+								<th class="py-2 px-3 border-r border-light_gray">
+									Is Checked
+								</th>
+								<th class="py-2 px-3 border-r border-light_gray">
+									Feature Name
+								</th>
+								<th class="py-2 px-3 border-r border-light_gray">
+									Allow Anonymous
+								</th>
+								<th class="py-2 px-3 border-r border-light_gray">
+									Is Visible
+								</th>
+
+							</tr>
+						</thead>
+						<tbody class="bg-white text-center">
+							@foreach (var aInfo in SetAllPermission)
+							{
+								<tr class="border-b border-light_gray">
+									<td class="py-2 px-3 border-r border-light_gray">
+										<label class="relative inline-flex cursor-pointer items-center">
+											<input id="switch-3" type="checkbox" class="peer sr-only"
+												   checked="@aInfo.IsChecked" @onclick="@(() => CheckboxChanged(aInfo))" />
+											<label for="switch-3" class="hidden"></label>
+											<div class="peer h-4 w-11 rounded border bg-slate-200 after:absolute after:-top-1 after:left-0 after:h-6 after:w-6 after:rounded-md after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-300 peer-checked:after:translate-x-full peer-focus:ring-green-300">
+											</div>
+										</label>
+									</td>
+									<td class="py-2 px-3 border-r border-light_gray text-start">
+										@aInfo.FeatureName
+									</td>
+									<td class="py-2 px-3 border-r border-light_gray text-center">
+										@aInfo.AllowAnonymous
+									</td>
+									<td class="py-2 px-3 border-r border-light_gray text-center">
+										@aInfo.IsVisible
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+
+			}
+
+			<div class="flex justify-end gap-2 mt-3">
+				@if (getPermission["menusetupandpermission/permissionsetuproleanduserwise"])
+				{
+					<button @onclick="FinalPermissionSubmit"
+							class="bg-my_blue md:px-3 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+						Set Permission
+					</button>
+				}
+			</div>
+
+
+        </section>
+
+			@*LLL*@
+			
+			@*LLL*@
+
+
+</div>
+
+}
+
+
+
+
+
+
+@code {
+
+	private UserModel user;
+	public string LoginMesssage { get; set; }
+	ClaimsPrincipal claimsPrincipal;
+	[CascadingParameter]
+	private Task<AuthenticationState> authenticationStateTask { get; set; }
+	IDictionary<string, bool> getPermission { get; set; }
+
+	private List<MenuSetupModel> AllMenuAndPermission { get; set; }
+	private List<MenuSetupModel> AllMenuList { get; set; }
+	private List<MenuSetupModel> AllPermission { get; set; }
+	private List<MenuSetupModel> AllAnonymousPermission { get; set; }
+
+
+	private List<MenuSetupModel> SetAllMenuAndPermission { get; set; }
+	private List<MenuSetupModel> SetAllMenuList { get; set; }
+	private List<MenuSetupModel> SetAllPermission { get; set; }
+	private List<MenuSetupModel> SetAllAnonymousPermission { get; set; }
+
+
+	private MenuUpdateRequestModel MenuUpdateRequset { get; set; }
+	private PermissionUpdateRequestModel PermissionUpdateRequest { get; set; }
+	private AnonymousPermissionRequestModel anonymousPermissionRequest { get; set; }
+
+	private ApiResponse responseForUpdate { get; set; }
+
+
+
+	List<string> RoleNames { get; set; }
+	string SelectedRole { get; set; }
+	string SelectedUserId { get; set; }
+
+	string SearchText { get; set; }
+	List<string> searchResult { get; set; }
+	private string? selectedUserId;
+	private string? selectedUserName;
+
+	List<long> MenuIdList { get; set; }
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		_spinnerService.Show();
+		user = new UserModel();
+		List<MenuSetupModel> AllMenuAndPermission = new List<MenuSetupModel>();
+		List<MenuSetupModel> AllMenuList = new List<MenuSetupModel>();
+		List<MenuSetupModel> AllPermission = new List<MenuSetupModel>();
+		List<MenuSetupModel> AllAnonymousPermission = new List<MenuSetupModel>();
+
+		List<MenuSetupModel> SetAllMenuAndPermission = new List<MenuSetupModel>();
+		List<MenuSetupModel> SetAllMenuList = new List<MenuSetupModel>();
+		List<MenuSetupModel> SetAllPermission = new List<MenuSetupModel>();
+		//List<MenuSetupModel> SetAllAnonymousPermission = new List<MenuSetupModel>();
+
+		MenuIdList = new List<long>();
+
+
+		RoleNames = new List<string>();
+		SearchText = string.Empty;
+
+		MenuUpdateRequset = new MenuUpdateRequestModel();
+		PermissionUpdateRequest = new PermissionUpdateRequestModel();
+		anonymousPermissionRequest = new AnonymousPermissionRequestModel();
+
+		claimsPrincipal = (await authenticationStateTask).User;
+
+		if (!claimsPrincipal.Identity.IsAuthenticated)
+		{
+			_spinnerService.Hide();
+			NavigationManager.NavigateTo("/");
+		}
+		else
+		{
+			/* Permission Setup Start */
+			var name = await localStorage.GetItemAsync<string>("permissionStrList");
+			List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+			
+			List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+			var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+			if (permissionCount > 0)
+			{
+				for (var i = 0; i <= (permissionCount / 30); i++)
+				{
+					string localStorageGetPermission = string.Empty;
+					localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+					if (!string.IsNullOrEmpty(localStorageGetPermission))
+					{
+						strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+					}
+				}
+			}
+
+			getPermission = new Dictionary<string, bool>();
+			var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+			if (strToObj.Count > 0)
+			{
+				foreach (var aName in perMiss)
+				{
+					var havePermission = nameList.Any(x => x == aName);
+					getPermission.Add(aName, havePermission);
+				}
+			}
+			/* Permission Setup End */
+
+
+			await getAllMenuAndPermissionSetup();
+			
+			await GetAllRolesName();
+
+		}
+		_spinnerService.Hide();
+	}
+
+	public async Task<IDictionary<string, bool>> CheckPermission(string name)
+        {
+			_spinnerService.Show();
+            var getPermission = await localStorage.GetItemAsync<string>("permission");
+            var strToObj = JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(getPermission);
+
+            var newDictionaryListItem = new Dictionary<string, bool>();
+
+            if (strToObj.Count > 0)
+            {
+
+				List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+				
+				foreach (var aName in nameList)
+                {
+
+                    var havePermission = strToObj.FirstOrDefault(x => x.MethodName == aName);
+                    if (havePermission != null)
+                    {
+                        newDictionaryListItem.Add(aName, true);
+                    }
+                    else
+                    {
+                        newDictionaryListItem.Add(aName, false);
+                    }
+                }                
+                return newDictionaryListItem;
+            }
+		_spinnerService.Hide();
+            return null;
+        }
+
+	private string CamalCaseToSentence(string text)
+	{
+		string output = Regex.Replace(text, @"\p{Lu}", m => " " + m.Value.ToLowerInvariant());
+		return output = char.ToUpperInvariant(output[0]) + output.Substring(1);
+	}
+
+	private async Task getAllMenuAndPermissionSetup()
+	{
+		_spinnerService.Show();
+		var response = await _menuPermissionService.GetAllMenuAndPermission("MenuSetupAndPermission/getAllMenuAndPermissionSetup");
+		if (response.StatusCode == 200)
+		{
+			AllMenuAndPermission = new List<MenuSetupModel>();
+			AllMenuList = new List<MenuSetupModel>();
+			AllPermission = new List<MenuSetupModel>();
+			AllAnonymousPermission = new List<MenuSetupModel>();
+
+			AllMenuAndPermission = response.Data;
+			AllMenuList = AllMenuAndPermission.FindAll(x => x.ShowInMenuItem == true);
+			AllPermission = AllMenuAndPermission.FindAll(x => x.ShowInMenuItem == false && x.AllowAnonymous == false);
+			AllAnonymousPermission = AllMenuAndPermission.FindAll(x => x.ShowInMenuItem == false && x.AllowAnonymous == true);
+		}
+		else if (response.StatusCode == 401)
+		{
+			var newRes = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			var res = await showMessage(newRes);
+			if (res.StatusCode == 200)
+			{
+				await getAllMenuAndPermissionSetup();
+			}
+		}
+		else
+		{
+			var newResponse = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			await showMessage(newResponse);
+		}
+		_spinnerService.Hide();
+	}
+
+	private async Task GetAllRolesName()
+	{
+		_spinnerService.Show();
+		var response = await _menuPermissionService.GetAllRolesName("MenuSetupAndPermission/GetAllRoles");
+		if (response.StatusCode == 200)
+		{
+			RoleNames = response.Data;
+		}
+		else if (response.StatusCode == 401)
+		{
+			var newRes = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			var res = await showMessage(newRes);
+			if (res.StatusCode == 200)
+			{
+				await GetAllRolesName();
+			}
+		}
+		else
+		{
+			var newResponse = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			await showMessage(newResponse);
+		}
+		_spinnerService.Hide();
+	}
+
+	private async Task ModalClose()
+	{
+		await js.InvokeVoidAsync("modalClose");
+	}
+
+	private int showPart { get; set; }
+
+	private async Task ShowMenuDetails(MenuSetupModel aInfo, int part)
+	{
+		_spinnerService.Show();
+		MenuUpdateRequset = new MenuUpdateRequestModel();
+		PermissionUpdateRequest = new PermissionUpdateRequestModel();
+		anonymousPermissionRequest = new AnonymousPermissionRequestModel();
+
+		showPart = part;
+		if(part is 1)
+		{
+			MenuUpdateRequset = new MenuUpdateRequestModel()
+			{
+				Id = aInfo.Id,
+				MenuName = aInfo.MenuName,
+				MenuIcon = aInfo.MenuIcon,
+				ParentId = aInfo.ParentId,
+				MenuSequence = aInfo.MenuSequence,
+				IsVisible = aInfo.IsVisible,
+				ShowInMenuItem = aInfo.ShowInMenuItem,
+			};
+		}
+		else if(part is 2)
+		{
+			PermissionUpdateRequest = new PermissionUpdateRequestModel()
+			{
+				Id = aInfo.Id,
+				FeatureName = aInfo.FeatureName,
+				IsVisible = aInfo.IsVisible,
+				AllowAnonymous = aInfo.AllowAnonymous,
+			};
+
+		}
+		else if(part is 3)
+		{
+			anonymousPermissionRequest = new AnonymousPermissionRequestModel()
+			{
+				Id = aInfo.Id,
+				FeatureName = aInfo.FeatureName,
+				IsVisible = aInfo.IsVisible,
+				AllowAnonymous = aInfo.AllowAnonymous,
+			};
+		}
+
+		await js.InvokeVoidAsync("modalOpen");
+		_spinnerService.Hide();
+	}
+
+
+	private async Task SaveReq()
+	{
+		_spinnerService.Show();
+		if (!(getPermission["menusetupandpermission/singlemenuupdate"]))
+		{
+			toastService.ShowError("permission denied.");
+			return;
+		}
+		if(showPart is 1)
+		{
+			if (!(getPermission["menusetupandpermission/allmenu"]))
+			{
+				_spinnerService.Hide();
+				toastService.ShowError("permission denied.");
+				return;
+			}
+			responseForUpdate = await _menuPermissionService.MenuUpdate(MenuUpdateRequset);
+		}
+		else if(showPart is 2)
+		{
+			if (!(getPermission["menusetupandpermission/allpermission"]))
+			{
+				_spinnerService.Hide();
+				toastService.ShowError("permission denied.");
+				return;
+			}
+			responseForUpdate = await _menuPermissionService.PermissionUpdate(PermissionUpdateRequest);
+		}
+		else if(showPart is 3)
+		{
+			if (!(getPermission["menusetupandpermission/allanonymouspermission"]))
+			{
+				_spinnerService.Hide();
+				toastService.ShowError("permission denied.");
+				return;
+			}
+			responseForUpdate = await _menuPermissionService.AnonymousPermissionUpdate(anonymousPermissionRequest);
+		}
+
+		if (responseForUpdate.StatusCode == 200)
+		{
+			await getAllMenuAndPermissionSetup();
+			await ModalClose();
+		}
+		else if (responseForUpdate.StatusCode == 401)
+		{
+			var newRes = new ApiResponse()
+                {
+                    Status = responseForUpdate.Status,
+                    StatusCode = responseForUpdate.StatusCode,
+                    Message = responseForUpdate.Message
+                };
+			var res = await showMessage(newRes);
+			if (res.StatusCode == 200)
+			{
+				await SaveReq();
+			}
+		}
+		else
+		{
+			var newResponse = new ApiResponse()
+                {
+                    Status = responseForUpdate.Status,
+                    StatusCode = responseForUpdate.StatusCode,
+                    Message = responseForUpdate.Message
+                };
+			await showMessage(newResponse);
+		}
+		_spinnerService.Hide();
+	}
+
+
+	private async Task HandleInput(ChangeEventArgs e)
+	{
+		_spinnerService.Show();
+		string filter = e.Value?.ToString();
+		if (filter?.Length > 2)
+		{
+			searchResult = await _menuPermissionService.GetAllUsersBySearch("Account/GetAllUsersForSearch?searchText=" + filter);
+		}
+		else
+		{
+			searchResult = null;
+			selectedUserName = selectedUserId = null;
+		}
+		_spinnerService.Hide();
+
+	}
+	private async Task SelectCustomer(string text)
+	{
+		var getData = text.Split("/").Select(x=> x.Trim()).ToList();
+		selectedUserId = getData[1];
+		SearchText = getData[0];
+		SelectedRole = getData[3];
+		searchResult = null;
+	}
+
+	private async Task GetAllPermissionUserOrRoleWise()
+	{
+		_spinnerService.Show();
+		MenuIdList = new List<long>();
+		if (string.IsNullOrEmpty(SelectedRole))
+		{
+			_spinnerService.Hide();
+			toastService.ShowError("You must be select a role");
+			return;
+		}
+		var filterData = new GetAllMenuSetupAndPermissionRequestModel()
+			{
+				roleName = SelectedRole,
+				UserId = selectedUserId
+			};
+		var response = await _menuPermissionService.SpecificUserOrRoleWisePermission("MenuSetupAndPermission/getAllMenuSetupAndRoleWiseMenuPermissionForUserOrRoleWise", filterData, AllMenuAndPermission);
+		if (response.StatusCode == 200)
+		{
+			SetAllMenuAndPermission = new List<MenuSetupModel>();
+			SetAllMenuList = new List<MenuSetupModel>();
+			SetAllPermission = new List<MenuSetupModel>();
+
+			SetAllMenuAndPermission = response.Data;
+			SetAllMenuList = SetAllMenuAndPermission.FindAll(x => x.ShowInMenuItem == true);
+			SetAllPermission = SetAllMenuAndPermission.FindAll(x => x.ShowInMenuItem == false && x.AllowAnonymous == false);
+			//SetAllAnonymousPermission = SetAllMenuAndPermission.FindAll(x => x.ShowInMenuItem == false && x.AllowAnonymous == true);
+
+			MenuIdList.AddRange(SetAllMenuAndPermission.FindAll(x => x.IsChecked == true && x.AllowAnonymous == false).Select(x => x.Id));
+		}
+		else if (response.StatusCode == 401)
+		{
+			var newRes = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			var res = await showMessage(newRes);
+			if (res.StatusCode == 200)
+			{
+				await GetAllPermissionUserOrRoleWise();
+			}
+		}
+		else
+		{
+			var newResponse = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			await showMessage(newResponse);
+		}
+		_spinnerService.Hide();
+	}
+
+	private void CheckboxChanged(MenuSetupModel ainfo)
+	{
+		if (!getPermission["menusetupandpermission/permissionsetuproleanduserwise"])
+		{
+			toastService.ShowError("permission denied.");
+			return;
+		}
+		var isIt = MenuIdList.FirstOrDefault(x => x == ainfo.Id);
+		if(isIt > 0)
+		{
+			MenuIdList.Remove(isIt);
+		}
+		else
+		{
+			MenuIdList.Add(ainfo.Id);
+		}
+	}
+
+	private async Task FinalPermissionSubmit()
+	{
+		_spinnerService.Show();
+		if (!getPermission["menusetupandpermission/permissionsetuproleanduserwise"])
+		{
+			_spinnerService.Hide();
+			toastService.ShowError("permission denied.");
+			return;
+		}
+		if (string.IsNullOrEmpty(SelectedRole))
+		{
+			_spinnerService.Hide();
+			toastService.ShowError("You must be select a role");
+			return;
+		}
+		var reqModel = new SetPermissionForRoleOrUserRequestModel()
+			{
+				MenuId = MenuIdList,
+				RoleName = SelectedRole,
+				UserId = selectedUserId
+			};
+
+		var response = await _menuPermissionService.UpdateAndDeleteMenuAndPermission("MenuSetupAndPermission/PermissionSetupRoleAndUserWise", reqModel);
+		if (response.StatusCode == 200)
+		{
+			await GetAllPermissionUserOrRoleWise();
+			await showMessage(response);
+		}
+		else if (response.StatusCode == 401)
+		{
+			var newRes = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			var res = await showMessage(newRes);
+			if (res.StatusCode == 200)
+			{
+				await FinalPermissionSubmit();
+			}
+		}
+		else
+		{
+			var newResponse = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			await showMessage(newResponse);
+		}
+		_spinnerService.Hide();
+	}
+
+	private async Task DeleteAllPermissionForAUserOrRole()
+	{
+		_spinnerService.Show();
+		if (!getPermission["menusetupandpermission/deletepermissionsetuproleanduserwise"])
+		{
+			_spinnerService.Hide();
+			toastService.ShowError("permission denied.");
+			return;
+		}
+		if (string.IsNullOrEmpty(SelectedRole))
+		{
+			_spinnerService.Hide();
+			toastService.ShowError("You must be select a role");
+			return;
+		}
+		var reqModel = new SetPermissionForRoleOrUserRequestModel()
+			{
+				MenuId = MenuIdList,
+				RoleName = SelectedRole,
+				UserId = selectedUserId
+			};
+			var response = await _menuPermissionService.UpdateAndDeleteMenuAndPermission("MenuSetupAndPermission/DeletePermissionSetupRoleAndUserWise", reqModel);
+		if (response.StatusCode == 200)
+		{
+			await GetAllPermissionUserOrRoleWise();
+			await showMessage(response);
+		}
+		else if (response.StatusCode == 401)
+		{
+			var newRes = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			var res = await showMessage(newRes);
+			if (res.StatusCode == 200)
+			{
+				await DeleteAllPermissionForAUserOrRole();
+			}
+		}
+		else
+		{
+			var newResponse = new ApiResponse()
+				{
+					Status = response.Status,
+					StatusCode = response.StatusCode,
+					Message = response.Message
+				};
+			await showMessage(newResponse);
+		}
+		_spinnerService.Hide();
+	}
+
+
+
+
+	private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+	{
+		if (apiResponse.StatusCode == 200)
+		{
+			toastService.ShowSuccess(apiResponse.Message);
+		}
+		else if (apiResponse.StatusCode == 401)
+		{
+			var res = await userService.RefreshTokenAsync();
+			if (res != null && res.Status == "invalid_grant")
+			{
+				await userService.removedLocalStorage();
+				await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+				NavigationManager.NavigateTo("/");
+			}
+			else if (res != null && res.Data != null)
+			{
+				UserModel user = (UserModel)res.Data;
+				await userService.setLocalStorage(user);
+				return res;
+			}
+		}
+		else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+		{
+			toastService.ShowError(apiResponse.Message);
+			await userService.removedLocalStorage();
+			await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+			NavigationManager.NavigateTo("/");
+		}
+		else
+		{
+			toastService.ShowError(apiResponse.Message);
+		}
+		return apiResponse;
+	}
+}

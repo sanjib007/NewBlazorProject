@@ -1,0 +1,91 @@
+﻿@using Cr.UI.Data.ChangeRequirementModel;
+@using System.Security.Claims;
+@using Cr.UI.Data;
+@using Cr.UI.Services.Interface;
+@using Blazored.Toast.Configuration
+
+@inherits LayoutComponentBase
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IGenericService<TempChangeRequestedInfo> uncompleteCrGenericService
+@inject IJSRuntime js
+
+
+
+
+<MainLayourTopbar />
+
+<main class="flex gap-3">
+
+    
+    <MainLayoutSidebar />
+
+
+    <section class="bg-white h-fit md:w-9/12 w-full mt-20 ">
+        @*ml-[12px]*@
+        <!-- mx-auto -->
+        <!-- here -->
+
+        <div class="p-1">
+            <h2 class="font-semibold border-b-2 border-main_bg p-4">Create CR (Change Request Form) </h2>
+
+            <div class="flex flex-col lg:flex-row lg:gap-16 gap-1 justify-center items-center lg:justify-start lg:items-start">
+
+                <div class="self-stretch">
+                   
+                    <Cr.UI.Shared.CrCreateSharePart.CrFormStapLi />
+                </div>
+
+                @Body
+
+            </div>
+        </div>     
+    </section>
+
+
+</main>
+<BlazoredToasts Position="ToastPosition.TopRight"
+                Timeout="10"
+                IconType="IconType.FontAwesome"
+                SuccessClass="success-toast-override"
+                SuccessIcon="fa fa-thumbs-up"
+                ErrorIcon="fa fa-bug" />
+
+
+@code {
+
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = new UserModel();
+
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            //NavigationManager.LocationChanged += (o, e) =>
+            //{
+            //    js.InvokeVoidAsync("alert", "Layour page"); // when location is changed invoke alert js function
+            //};
+
+        }
+    }
+
+
+    
+}
+
+
+

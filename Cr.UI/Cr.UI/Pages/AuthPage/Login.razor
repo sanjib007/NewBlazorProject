@@ -1,0 +1,118 @@
+﻿@page "/"
+
+@using System.Security.Claims;
+@using Cr.UI.Data;
+@using Cr.UI.Data.StateManagement;
+@using Cr.UI.Services.Interface;
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IJSRuntime jsRunTime
+@inject IToastService toastService
+@inject SpinnerState _spinnerService;
+
+
+<section class="flex max-lg:bg-[url('/assets/login-background.png')] max-lg:bg-left max-lg:bg-no-repeat max-lg:bg-cover">
+    <div class="max-lg:hidden h-screen bg-[url('/assets/login-background.png')] bg-left bg-no-repeat bg-cover w-1/2 flex items-center justify-center">
+        <div class="img-wrapper">
+            <img src="/assets/login-icon.svg" alt="login-icon" class="max-w-full" />
+        </div>
+    </div>
+    <div class="max-lg:w-full max-lg:h-screen form-portion w-1/2 self-stretch flex items-center justify-center">
+        <div class="form-items w-[385px] m-2 p-7 bg-white rounded-md ">
+            <div class="form-upper-icon hidden max-lg:flex justify-center items-center">
+                <div class="img-wrapper">
+                    <img src="/assets/link3.svg" class="w-[85px]" alt="" />
+                </div>
+            </div>
+            <div class="form-title mb-9">
+                <h1 class="text-[36px] font-medium mb-3">Log In</h1>
+                <p class="font-medium text-[14px]">
+                    New user? <a href="" class="text-[#0079FF]">Create an account</a>
+                </p>
+            </div>
+
+            <EditForm Model="@user" OnValidSubmit="@LoginMethod">
+                <label class="mb-6 block w-full font-medium">
+                   Employee Id
+                    <br />
+                    <input class="w-full py-[8px] text-[#84818A] border-b-2 border-[#84818A] focus:outline-0 focus:border-b-2 focus:border-[#034EA1] focus:text-black"
+                           type="text"
+                           name="email" @bind="user.UserName"
+                           placeholder="L3T21.." />
+                </label>
+                <label class="mb-9 block w-full font-medium">
+                    Password <br />
+                    <input class="w-full py-[8px] text-[#84818A] border-b-2 border-[#84818A] focus:outline-0 focus:border-b-2 focus:border-[#034EA1]"
+                           type="password"
+                           name="password"
+                            @bind="user.Password"
+                           placeholder="Enter your password" />
+                </label>
+           
+                <div class="btn-n-links flex justify-between items-center max-xs:flex-col gap-2">
+                    <a href="index" class="text-[#0079FF] font-medium text-[14px]">Forgot password?</a>
+                    <button type="submit"
+                            class="font-medium text-white py-[14px] px-[60px] bg-[#034EA1] rounded-[6px] transition duration-300 ease-in-out hover:opacity-[0.9]">
+                        Sign In
+                    </button>
+                    
+                </div>
+            </EditForm>
+            <span>@LoginMesssage</span>
+        </div>
+    </div>
+</section>
+
+
+
+@code {
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        user = new UserModel();
+
+        claimsPrincipal = (await authenticationStateTask).User;
+        if (claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/index");
+        }
+        else
+        {
+            await userService.removedLocalStorage();
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task<bool> LoginMethod()
+    {
+        _spinnerService.Show();
+        var newUserModel = new UserModel();
+        newUserModel.UserName = await userService.Encryption(user.UserName);
+        newUserModel.Password = await userService.Encryption(user.Password);
+        var returnedUser = await userService.LoginAsync(newUserModel);
+
+        if (returnedUser.Subject != null && string.IsNullOrEmpty(returnedUser.Status))
+        {
+            await ((CustomAuthenticationStateProvidore)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/index");
+        }
+        else
+        {
+            toastService.ShowError(returnedUser.Message);
+        }
+        _spinnerService.Hide();
+        return await Task.FromResult(true);
+    }
+
+}

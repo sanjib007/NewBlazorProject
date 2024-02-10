@@ -1,0 +1,456 @@
+﻿@using Cr.UI.Data;
+@using Cr.UI.Services.Interface;
+@using System.Security.Claims;
+
+@inject IToastService toastService;
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject AuthenticationStateProvider authenticationStateProvider
+
+@inject IGenericService<DeveloperInformation> _developerService;
+@inject IChangeRequirementService _changeRequirementService;
+
+
+@if (setEmployeeRequestModel != null)
+{
+    <section class="h-screen flex justify-center items-start">
+
+        <div class="bg-white relative w-11/12 md:w-[461px] rounded">
+            <!-- lg:w-5/12 md:w-7/12 w-10/12 -->
+
+            <div class="p-5 w-full bg-white rounded drop-shadow-[0px_9px_14px_rgba(0,0,0,0.05)] ">
+                <!-- drop-shadow-[0px_-9px_14px_1px_rgba(0,0,0,0.05)] -->
+                <!-- drop-shadow-[0px_1px_14px_1px_rgba(0,0,0,0.05)] -->
+                <!-- drop-shadow-[0_35px_35px_rgba(0,0,0,0.25)] -->
+                <!-- box-shadow: 0px 1px 14px 1px rgba(0, 0, 0, 0.05); -->
+
+                <div class="flex justify-between items-center gap-3">
+                    @{
+                        var step = "hidden";
+                    }
+                    <button @onclick="(()=>ChangeModalState.InvokeAsync(step))"
+                            class="flex items-center gap-4 hover:text-my_blue duration-300 group md:w-1/2 max-w-fit">
+                        <img src="assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
+                        Back
+                    </button>
+
+                    <button @onclick="()=>ChangeModalState.InvokeAsync(step)" type="button" class="group p-2 hover:bg-active_bg duration-300 rounded-full">
+                        <img src="assets/cross-icon.svg" alt="cross-icon" class=" cus-filter">
+                    </button>
+
+                </div>
+
+            </div>
+
+            @if (setEmployeeRequestModel.Id > 0)
+            {
+                <EditForm id="assign-employee-form-btn" @Model="@setEmployeeRequestModel" OnValidSubmit="@AddAssignEmployee">
+                    <DataAnnotationsValidator />
+                    <div class="text-start px-8">
+
+                        <h2 class="font-semibold text-3xl pt-3">
+                            Assign
+                        </h2>
+
+                        <p class="text-my_gray py-2 pb-3">Assign Personnel for Project</p>
+
+                        <div class="flex gap-5 pt-3  flex-col md:flex-row">
+
+                            <div class=" w-full">
+                                <label for="AssignPersonnel" class="text-my_gray pt-3 font-semibold text-lg">
+                                    Assign Personnel:
+                                </label>
+                                <input type="hidden" @bind-value=setEmployeeRequestModel.EmpId>
+                                <input type="hidden" @bind-value=setEmployeeRequestModel.CrId>
+
+                                <!-- search -->
+                                <div class="flex h-8 justify-center w-full mt-2 relative">
+                                    <input type="text" placeholder="Search" @bind-value=setEmployeeRequestModel.EmpName @oninput=HandleInput class="px-2 py-1 border-y border-l w-full" id="AssignPersonnel">
+
+                                    <button type="button" class="border px-2 py-1 group bg-active_bg">
+                                        <img src="/assets/search-icon.svg" alt="search-icon" class="cus-filter">
+                                    </button>
+                                    <div class="w-full absolute top-[32px] left-0 bg-white max-h-[150px] overflow-y-scroll scroll border rounded shadow-md">
+                                        @if (employees is not null)
+                                        {
+                                            <ul class="options flex flex-col gap-1">
+                                                @if (employees.Any())
+                                                {
+                                                    @foreach (var customer in employees)
+                                                    {
+                                                        <li class="option p-1 hover:cursor-pointer hover:bg-active_bg transition ease-in-out duration-150 border-b" @onclick=@(_ => SelectCustomer(customer.UserId))>
+                                                            <span class="option-text">@customer.User_Name (@customer.UserId)</span>
+                                                        </li>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <li class="disabled option">No results</li>
+                                                }
+                                            </ul>
+                                        }
+                                    </div>
+                                </div>
+                                <p class="text-rose-600"><ValidationMessage For="@(()=>setEmployeeRequestModel.EmpName)" /></p>
+                            </div>
+
+                        </div>
+
+                        <div class="flex gap-5 my-3 flex-col md:flex-row">
+
+                            <div class="w-full md:w-1/2">
+                                <label for="date" class="text-my_gray pt-3 font-semibold text-lg">
+                                    Start Date
+                                </label>
+
+                                <input type="date" name="date" id="date" @bind-value=setEmployeeRequestModel.StartDate
+                                       class="border border-light_gray px-2 py-1 mt-2 rounded-sm w-full">
+                                <p class="text-rose-600"><ValidationMessage For="@(()=>setEmployeeRequestModel.StartDate)" /></p>
+                            </div>
+
+                            <div class="w-full md:w-1/2">
+                                <label for="Total-Days" class="text-my_gray pt-3 font-semibold text-lg">
+                                    Total Days
+                                </label>
+
+                                <input type="number" name="Total-Days" id="Total-Days" placeholder="Days (Number)" @bind-value=setEmployeeRequestModel.TotalDay
+                                       class="border border-light_gray px-2 py-[5px] mt-2 rounded-sm w-full">
+                                <p class="text-rose-600"><ValidationMessage For="@(()=>setEmployeeRequestModel.TotalDay)" /></p>
+                            </div>
+
+                        </div>
+
+                        <!-- 1st-textarea -->
+                        <div class="pb-6">
+
+                            <label for="Task" class="text-my_gray pt-3 font-semibold">
+                                Task
+                            </label>
+
+                            <textarea name="Task" id="Task" cols="30" rows="3" placeholder="Task Description" @bind=setEmployeeRequestModel.Task
+                                      class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+
+                        </div>
+
+                    </div>
+                </EditForm>
+                <!-- btn -->
+            }
+            else
+            {
+                <EditForm id="assign-employee-form-btn" EditContext="@context" OnValidSubmit="@AddAssignEmployee">
+                    <DataAnnotationsValidator />
+                    <div class="text-start px-8">
+
+                        <h2 class="font-semibold text-3xl pt-3">
+                            Assign
+                        </h2>
+
+                        <p class="text-my_gray py-2 pb-3">Assign Personnel for Project</p>
+
+                        <div class="flex gap-5 pt-3  flex-col md:flex-row">
+
+                            <div class=" w-full">
+                                <label for="Assign-Personnel" class="text-my_gray pt-3 font-semibold text-lg">
+                                    Assign Personnel:
+                                </label>
+                                <input type="hidden" @bind-value=setEmployeeRequestModel.EmpId>
+                                <input type="hidden" @bind-value=setEmployeeRequestModel.CrId>
+
+                                <!-- search -->
+                                <div class="flex h-8 justify-center w-full mt-2 relative">
+                                    <input type="text" placeholder="Search" @bind-value=setEmployeeRequestModel.EmpName @oninput=HandleInput class="px-2 py-1 border-y border-l w-full">
+
+                                    <button type="button" class="border px-2 py-1 group bg-active_bg" @onclick="ReloadDeveloperList">
+                                        <img src="/assets/refresh_icon1.svg" style="height: 25px;" alt="search-icon" class="cus-filter">
+                                    </button>
+                                    <div class="w-full absolute top-[32px] left-0 bg-white max-h-[150px] overflow-y-scroll scroll border rounded shadow-md">
+                                        @if (employees is not null)
+                                        {
+                                            <ul class="options flex flex-col gap-1">
+                                                @if (employees.Any())
+                                                {
+                                                    @foreach (var customer in employees)
+                                                    {
+                                                        <li class="option p-1 hover:cursor-pointer hover:bg-active_bg transition ease-in-out duration-150 border-b" @onclick=@(_ => SelectCustomer(customer.UserId))>
+                                                            <span class="option-text">@customer.User_Name (@customer.UserId)</span>
+                                                        </li>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <li class="disabled option">No results</li>
+                                                }
+                                            </ul>
+                                        }
+                                    </div>
+                                </div>
+                                <p class="text-rose-600"><ValidationMessage For="@(()=>setEmployeeRequestModel.EmpName)" /></p>
+                            </div>
+
+                        </div>
+
+                        <div class="flex gap-5 my-3 flex-col md:flex-row">
+
+                            <div class="w-full md:w-1/2">
+                                <label for="date" class="text-my_gray pt-3 font-semibold text-lg">
+                                    Start Date
+                                </label>
+
+                                <input type="date" name="date" id="date" @bind-value=setEmployeeRequestModel.StartDate
+                                       class="border border-light_gray px-2 py-1 mt-2 rounded-sm w-full">
+                                <p class="text-rose-600"><ValidationMessage For="@(()=>setEmployeeRequestModel.StartDate)" /></p>
+                            </div>
+
+                            <div class="w-full md:w-1/2">
+                                <label for="Total-Days" class="text-my_gray pt-3 font-semibold text-lg">
+                                    Total Days
+                                </label>
+
+                                <input type="number" name="Total-Days" id="Total-Days" placeholder="Days (Number)" @bind-value=setEmployeeRequestModel.TotalDay
+                                       class="border border-light_gray px-2 py-[5px] mt-2 rounded-sm w-full">
+                                <p class="text-rose-600"><ValidationMessage For="@(()=>setEmployeeRequestModel.TotalDay)" /></p>
+                            </div>
+
+                        </div>
+
+                        <!-- 1st-textarea -->
+                        <div class="pb-6">
+
+                            <label for="Task" class="text-my_gray pt-3 font-semibold">
+                                Task
+                            </label>
+
+                            <textarea name="Task" id="Task" cols="30" rows="3" placeholder="Task Description" @bind=setEmployeeRequestModel.Task
+                                      class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+
+                        </div>
+
+                    </div>
+                </EditForm>
+                <!-- btn -->
+            }
+
+
+            <div class="p-5 w-full bg-white rounded drop-shadow-[0px_-9px_14px_rgba(0,0,0,0.05)] ">
+
+                <div class="flex justify-end items-center gap-3">
+
+                    <button @onclick="(()=>ChangeModalState.InvokeAsync(step))"
+                        form="assign-employee-form-btn" type="button"
+                            class="border border-light_gray lg:px-20 md:px-16 px-8 py-2 rounded hover:text-my_blue hover:border-my_blue ease-in-out duration-300">
+                        Cancel
+                    </button>
+
+                    <button form="assign-employee-form-btn" type="submit"
+                            class="bg-my_blue lg:px-20 md:px-16 px-8 py-2 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+
+                        Add
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+
+
+@code {
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public List<AssignEmployeeListResponse> AssignedEmployee { get; set; }
+    [Parameter] public long CrId { get; set; }
+
+    [Parameter] public EventCallback<string> ChangeModalState { get; set; }
+
+    [Parameter]
+    public EventCallback CrAssignEmployeeList { get; set; }
+
+
+
+    private UserModel user;
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+
+
+    private List<DeveloperInformation> getAllDeveopler { get; set; }
+
+    private List<DeveloperInformation> employees { get; set; }
+    private string? selectedCustomerId;
+    private string? selectedCustomerName;
+    private string? filter;
+
+    EditContext context;
+    public AddAssignEmployeeReq setEmployeeRequestModel { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = new UserModel();
+        setEmployeeRequestModel = new AddAssignEmployeeReq();
+        setEmployeeRequestModel.StartDate = DateTime.Now;
+        setEmployeeRequestModel.TotalDay = 0;
+        setEmployeeRequestModel.CrId = CrId;
+
+
+        context = new EditContext(setEmployeeRequestModel);
+
+        getAllDeveopler = new List<DeveloperInformation>();
+        await GetAllDev();
+
+    }
+
+    public async Task GetAllDev()
+    {
+        var data = await _developerService.GetAllAsync("AssignToEmployee/AllAssignDeveloper");
+        if (data.Data != null)
+        {
+            getAllDeveopler = data.Data;
+            //foreach (var aInfo in AssignedEmployee)
+            //{
+            //    var hasData = getAllDeveopler.FirstOrDefault(x => x.UserId == aInfo.EmpId);
+            //    getAllDeveopler.Remove(hasData);
+            //}
+        }
+    }
+
+    private async Task ReloadDeveloperList()
+    {
+        var data = await _developerService.GetWithoutResponse("AssignToEmployee/ReloadAllAssignDeveloper");
+        await GetAllDev();
+    }
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        filter = e.Value?.ToString();
+        if (filter?.Length > 2)
+        {
+            employees = getAllDeveopler.Where(x => x.UserId.ToUpper().Contains(filter.ToUpper()) || x.User_Name.ToUpper().Contains(filter.ToUpper()) || x.User_Email.ToUpper().Contains(filter.ToUpper())).OrderBy(x => x.User_Name).ToList();
+        }
+        else
+        {
+            employees = null;
+            selectedCustomerName = selectedCustomerId = null;
+        }
+    }
+
+    private async Task SelectCustomer(string id)
+    {
+        selectedCustomerId = id;
+        setEmployeeRequestModel.EmpName = employees!.First(c => c.UserId.Equals(selectedCustomerId)).User_Name;
+        setEmployeeRequestModel.EmpId = selectedCustomerId;
+        employees = null;
+    }
+
+    public async Task setValueForUpdate(AssignEmployeeListResponse aEmployeeInfo)
+    {
+        if (aEmployeeInfo != null && aEmployeeInfo.CrId > 0)
+        {
+            setEmployeeRequestModel = new AddAssignEmployeeReq();
+            setEmployeeRequestModel.Id = aEmployeeInfo.Id;
+            setEmployeeRequestModel.CrId = aEmployeeInfo.CrId;
+            setEmployeeRequestModel.EmpId = aEmployeeInfo.EmpId;
+            setEmployeeRequestModel.EmpName = aEmployeeInfo.EmpName;
+            setEmployeeRequestModel.StartDate = aEmployeeInfo.StartDate != null ? (DateTime)aEmployeeInfo.StartDate : DateTime.Now;
+            setEmployeeRequestModel.TotalDay = aEmployeeInfo.TotalDay != null ? (int)aEmployeeInfo.TotalDay : 0;
+            setEmployeeRequestModel.Task = aEmployeeInfo.Task;
+            ShouldRender();
+        }        
+    }
+
+
+
+    private async Task AddAssignEmployee(EditContext context)
+    {
+
+        var hasData = AssignedEmployee.FirstOrDefault(x => x.EmpId == setEmployeeRequestModel.EmpId);
+        if (hasData!= null)
+        {
+            toastService.ShowError("Already assign.");
+            return;
+        }
+
+        var response = await _changeRequirementService.AddAssignEmployeeSaveAsync("AssignToEmployee/AddAssignEmployee", setEmployeeRequestModel);
+        if (response.StatusCode == 200)
+        {
+            await showMessage(response);
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await AddAssignEmployee(context);
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        setEmployeeRequestModel = new AddAssignEmployeeReq();
+        setEmployeeRequestModel.StartDate = DateTime.Now;
+        setEmployeeRequestModel.TotalDay = 0;
+        setEmployeeRequestModel.CrId = CrId;
+        await ChangeModalState.InvokeAsync("hidden");
+        await CrAssignEmployeeList.InvokeAsync();
+    }
+
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess(apiResponse.Message);
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+
+}

@@ -1,0 +1,823 @@
+﻿@using Cr.UI.Data;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.StateManagement;
+@using Cr.UI.Services.Interface;
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+
+@inject NavigationManager navigationManager
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject INotificationService _notificationServie
+@inject IJSRuntime js
+@inject IUserService userService
+@inject IToastService toastService;
+@inject AppState appState
+@implements IDisposable
+
+@inject IChangeRequirementService _changeRequirementService;
+@inject IGenericService<CrApprovalFlow> _crApprovalFlowService;
+
+
+<Title Value="Create CR" />
+
+<nav class="bg-deep_blue flex justify-between w-full fixed z-50 ">
+    <!-- fixed -->
+    <!-- container -->
+
+    <div class="flex items-center gap-5">
+
+        <a href="https://office.link3.net/login/Home/Index" class="py-1 px-8">
+
+            <img src="/assets/logo.jpg" width="61" height="56" alt="link3-logo">
+        </a>
+
+        @*<button class="text-white flex gap-1 cus_collapse p-2 hover:bg-my_blue duration-300 ease-in-out rounded">
+            <img src="/assets/hamburger-menu.svg" alt="dashboard-menu">
+        </button>*@
+        <!-- Dashboard -->
+    </div>
+
+    <div class="flex items-center md:gap-6 gap-2 ">
+        <!-- divide-x-[1px] divide-divider divide-opacity-25 -->
+
+        <button class="relative" @onclick="showNotificationBtn">
+
+            <div id="showNotify" class="bg-white w-72 rounded absolute right-[0] top-[25px] hidden">
+
+                <!-- Notifi -- View-All -->
+                <div class="header border-b border-light_gray w-full text-sm flex items-center justify-between px-5 py-4">
+                    <p>Notification</p>
+                </div>
+
+                <ul class="h-[13rem] overflow-y-scroll scroll">
+                    @if (notificationList == null)
+                    {
+                        <p>Loading...</p>
+                    }
+                    else if (notificationList.Count == 0)
+                    {
+                        <p>No data found</p>
+                    }
+                    else
+                    {
+                        @foreach (var aInfo in notificationList)
+                        {
+                            <!-- 1st -->
+                            <li class="@((!aInfo.IsRead ? "bg-red-50" : ""))">
+                                @if (!userRole.ToUpper().Contains("USER"))
+                                {
+                                    <a @onclick="()=>ShowCr(aInfo.CrId)" class="flex items-start gap-3 px-4 py-3 hover:bg-active_bg active:bg-violet-700 duration-300 group">
+
+                                        <img src="/assets/Notification.svg" alt="In-Progress-icon" class="w-8 aspect-square">
+
+                                        <div class="text-xs flex flex-col gap-2 text-left w-full overflow-x-hidden">
+                                            <h4 class="font-semibold group-hover:text-my_blue duration-300">
+                                                @aInfo.Title
+                                            </h4>
+                                            <p class="w-full line-clamp-1">
+                                                @(string.IsNullOrEmpty(aInfo.Message) ? string.Empty : aInfo.Message.Split(".")[0])
+                                            </p>
+                                            <p class="w-full">
+                                                @aInfo.Message.Split(".").LastOrDefault()
+                                            </p>
+
+                                            <p class="flex gap-1">
+                                                <img src="/assets/clock-icon.svg" alt="clock-icon">
+                                                @{
+                                                    var showTime = "";
+                                                    var diffInSeconds = (DateTime.Now - aInfo.CreatedAt).TotalSeconds;
+                                                    if (diffInSeconds <= 59)
+                                                    {
+                                                        showTime = Convert.ToInt64(diffInSeconds).ToString() + " Seconds ago";
+                                                    }
+                                                    else if (diffInSeconds >= 60 && diffInSeconds <= 3599)
+                                                    {
+                                                        showTime = (Convert.ToInt64(diffInSeconds) / 60).ToString() + " Minutes ago";
+                                                    }
+                                                    else if (diffInSeconds >= 3600 && diffInSeconds <= 86399)
+                                                    {
+                                                        showTime = (Convert.ToInt64(diffInSeconds) / 60 / 60).ToString() + " Hours ago";
+                                                    }
+                                                    else
+                                                    {
+                                                        showTime = aInfo.CreatedAt.ToString("dddd, dd MMMM yyyy");
+                                                    }
+                                                }
+                                                <span>@(showTime)</span>
+                                            </p>
+                                        </div>
+
+                                    </a>
+                                }
+                                else
+                                {
+                                    <div class="flex items-start gap-3 px-4 py-3 hover:bg-active_bg active:bg-violet-700 duration-300 group">
+
+                                        <img src="/assets/Notification.svg" alt="In-Progress-icon" class="w-8 aspect-square">
+
+                                        <div class="text-xs flex flex-col gap-2 text-left w-full overflow-x-hidden">
+                                            <h4 class="font-semibold group-hover:text-my_blue duration-300">
+                                                @aInfo.Title
+                                            </h4>
+                                            <p class="w-full line-clamp-1">
+                                                @(string.IsNullOrEmpty(aInfo.Message) ? string.Empty : aInfo.Message.Split(".")[0])
+                                            </p>
+                                            <p class="w-full">
+                                                @aInfo.Message.Split(".").LastOrDefault()
+                                            </p>
+
+                                            <p class="flex gap-1">
+                                                <img src="/assets/clock-icon.svg" alt="clock-icon">
+                                                @{
+                                                    var showTime = "";
+                                                    var diffInSeconds = (DateTime.Now - aInfo.CreatedAt).TotalSeconds;
+                                                    if (diffInSeconds <= 59)
+                                                    {
+                                                        showTime = Convert.ToInt64(diffInSeconds).ToString() + " Seconds ago";
+                                                    }
+                                                    else if (diffInSeconds >= 60 && diffInSeconds <= 3599)
+                                                    {
+                                                        showTime = (Convert.ToInt64(diffInSeconds) / 60).ToString() + " Minutes ago";
+                                                    }
+                                                    else if (diffInSeconds >= 3600 && diffInSeconds <= 86399)
+                                                    {
+                                                        showTime = (Convert.ToInt64(diffInSeconds) / 60 / 60).ToString() + " Hours ago";
+                                                    }
+                                                    else
+                                                    {
+                                                        showTime = aInfo.CreatedAt.ToString("dddd, dd MMMM yyyy");
+                                                    }
+                                                }
+                                                <span>@(showTime)</span>
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                }
+                            </li>
+                        }
+                    }
+
+                </ul>
+
+                <!-- view-more -->
+                <div class="header border-t border-light_gray w-full">
+                    <button @onclick="GetNotification"
+                            class="block text-sm px-5 py-4 hover:bg-active_bg duration-300 hover:text-my_blue text-center mx-auto">
+                        <span>View More</span>
+                        <span>&gt;</span>
+                    </button>
+                </div>
+
+            </div>
+
+
+            <img src="/assets/notification-bell.svg" alt="notification-icon" id="showNotification">
+
+            @if(unReadCount == null)
+            {
+                <div></div>
+            }
+            else if (unReadCount == 0)
+            {
+                <!-- red-circle for number -->
+                <div class="bg-red-600 rounded-full w-[12px] text-white text-[10px] aspect-square absolute top-[-8px] -right-1">
+                    0
+                </div>
+            }
+            else
+            {
+                <!-- red-circle for number -->
+                <div class="bg-red-600 rounded-full w-[12px] text-white text-[10px] aspect-square absolute top-[-8px] -right-1">
+                    @unReadCount
+                </div>
+            }
+            
+        </button>
+
+
+        <button class="flex md:gap-6 gap-2 md:px-6 px-2 border-l border-bd_color border-opacity-25 relative" id="toggleDropdown" @onclick="ChangeProfileBtnClass">
+
+            <!-- dropdown menu start -->
+
+            <div id="showHide" class="bg-white w-56 rounded absolute top-[35px] left-0 hidden">
+
+                <ul class="">
+
+                    <!-- My Profile -->
+                    @*<li class="">
+                        <a href="#"
+                           class="group flex items-center gap-3 px-4 py-3 hover:bg-active_bg duration-300 hover:text-my_blue">
+                            <img src="/assets/my-profile-icon.svg" alt="my-profile-icon" class="cus-filter">
+                            <span>My Profile</span>
+                        </a>
+                    </li>
+
+                    <!-- Home -->
+                    <li class="">
+                        <a href="#"
+                           class="group flex items-center gap-3 px-4 py-3 hover:bg-active_bg duration-300 hover:text-my_blue">
+                            <img src="/assets/home-icon.svg" alt="home-icon" class="cus-filter">
+                            <span>Home</span>
+                        </a>
+                    </li>
+
+                    <!-- Settings -->
+                    <li class="">
+                        <a href="#"
+                           class="group flex items-center gap-3 px-4 py-3 hover:bg-active_bg duration-300 hover:text-my_blue">
+                            <img src="/assets/settings-gear-icon.svg" alt="settings-gear-icon" class="cus-filter">
+                            <span>Settings</span>
+                        </a>
+                    </li>*@
+
+                    <!-- logout -->
+                    <li class="header border-t border-light_gray w-full">
+                        <a @onclick="(() => Logout())" href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-active_bg duration-300 text-red-600">
+                            <img src="/assets/logout-icon.svg" alt="logout-icon"
+                                 class="border border-light_gray rounded-full p-1">
+                            <span>Logout</span>
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+
+            <div class="flex items-center gap-2 mt-1">
+
+                <p class="text-white">@FullName</p>
+
+                <img src="/assets/down-fill-arrow.svg" alt="down-fill-arrow-icon" class="pt-1">
+
+            </div>
+
+            <!-- dropdown menu end -->
+
+            <p class=" h-8 w-8 rounded-full bg-user_bg flex justify-center items-center">
+                @FirstLetterOfWord
+            </p>
+
+            
+
+        </button>
+        
+
+    </div>
+
+</nav>
+@if(aCrInfromation != null)
+{
+    <div class="relative z-[100] hidden" id="singleModal" aria-labelledby="modal-title" role="dialog" aria-modal="false">
+        <!--
+          Background backdrop, show/hide based on modal state.
+
+          Entering: "ease-out duration-300"
+            From: "opacity-0"
+            To: "opacity-100"
+          Leaving: "ease-in duration-200"
+            From: "opacity-100"
+            To: "opacity-0"
+        -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <!--
+                  Modal panel, show/hide based on modal state.
+
+                  Entering: "ease-out duration-300"
+                    From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    To: "opacity-100 translate-y-0 sm:scale-100"
+                  Leaving: "ease-in duration-200"
+                    From: "opacity-100 translate-y-0 sm:scale-100"
+                    To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                -->
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all">
+                    <div class="bg-white flex items-center md:justify-between p-5 rounded-sm relative flex-col md:flex-row gap-10 md:gap-1 justify-center">
+                        <!-- w-11/12 -->
+
+                        <div class="flex items-center gap-4 hover:text-my_blue duration-300 group md:w-1/2">
+                            <p class="line-clamp-1">
+                                @aCrInfromation.Subject
+                            </p>
+                        </div>
+                        @if (!userRole.ToUpper().Contains("USER"))
+                        {
+                            <div class="flex gap-2 md:mr-16 md:w-1/2 md:justify-end">
+                                <button class="bg-my_blue flex items-center text-white px-4 py-2 rounded-sm gap-3 hover:bg-deep_blue duration-300"
+                                @onclick="ApprocedCr">
+                                    <!-- hover:opacity-75 -->
+                                    <img src="/assets/Approved.svg" alt="Approved-icon" class="cus-white-filter" />
+                                    Approve
+
+                                </button>
+
+                                <button class="bg-red-600 text-white px-4 py-2 rounded-sm hover:bg-red-800 duration-300"
+                                @onclick="RejectCr">
+                                    Reject
+                                </button>
+                            </div>
+                        }
+
+                        <button type="button"
+                                class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
+                        @onclick="ModalClose">
+                            <img src="/assets/cross-icon.svg" alt="cross-icon" />
+                        </button>
+                    </div>
+
+                    <main class="flex gap-3 flex-col lg:flex-row">
+                        <!-- left-aside -->
+                        <aside class="h-fit bg-white lg:w-72 w-full mt-2">
+                            <!-- w-72 -->
+
+                            <ul class="">
+                                <!-- 1 -->
+                                @{
+                                    var partOne = "Current";
+                                    var partTwo = "Approver";
+                                    var partThree = "Assign";
+                                }
+                                <li class="border-b border-main_bg group whitespace-nowrap" @onclick="(()=>ShowCrPart(partOne))">
+                                    <a style="cursor:pointer;" class="flex gap-5 group-hover:bg-active_bg duration-300 ease-in-out">
+                                        <div class="w-1 group-hover:bg-my_blue duration-300 ease-in-out">
+                                            <!-- active-aside -->
+                                        </div>
+
+                                        <p class="py-3 pr-5">
+                                            <!-- condition code here -->
+                                            <div class="truncate">@aCrInfromation.Subject</div>
+                                        </p>
+                                    </a>
+                                </li>
+
+                                <!-- 2 -->
+                                <li class="border-b border-main_bg group whitespace-nowrap" @onclick="(()=>ShowCrPart(partTwo))">
+                                    <a style="cursor:pointer;" class="flex gap-5 group-hover:bg-active_bg duration-300 ease-in-out">
+                                        <div class="w-1 group-hover:bg-my_blue duration-300 ease-in-out">
+                                            <!-- active-aside -->
+                                        </div>
+
+                                        <p class="py-3 pr-5">
+                                            <!-- condition code here -->
+                                            Approver
+                                        </p>
+                                    </a>
+                                </li>
+
+                                <!-- 3 -->
+                                <li class="border-b border-main_bg group whitespace-nowrap" @onclick="(()=>ShowCrPart(partThree))">
+                                    <a style="cursor:pointer;" class="flex gap-5 group-hover:bg-active_bg duration-300 ease-in-out">
+                                        <div class="w-1 group-hover:bg-my_blue duration-300 ease-in-out">
+                                            <!-- active-aside -->
+                                        </div>
+
+                                        <p class="py-3 pr-5">
+                                            <!-- condition code here -->
+                                            Assign
+                                        </p>
+                                    </a>
+                                </li>
+
+                                <!-- 4 -->
+                                @*<li class="border-b border-main_bg group whitespace-nowrap">
+                            <a style="cursor:pointer;" class="flex gap-5 group-hover:bg-active_bg duration-300 ease-in-out">
+                            <div class="w-1 group-hover:bg-my_blue duration-300 ease-in-out">
+                            <!-- active-aside -->
+                            </div>
+
+                            <p class="py-3 pr-5">
+                            <!-- condition code here -->
+                            Download
+                            </p>
+                            </a>
+                            </li>*@
+                            </ul>
+                        </aside>
+                        @if (CurrentPartActive == partOne)
+                        {
+
+                            <section class="bg-white p-4 md:p-5 mt-2 mb-5 flex-1 middle-box-shadow space-y-5 self-stretch w-[600px]">
+                                <!-- h-[85vh] -->
+                                <div class="h-[690px] overflow-y-scroll scroll">
+                                    <!-- FORM -->
+                                    <div class="flex-1">
+                                        <FullCRShow aCrInfromation="@aCrInfromation" />
+                                        <!-- form-btn-out of form start  -->
+                                    </div>
+                                </div>
+                            </section>
+
+                        }
+                        else if (CurrentPartActive == partTwo)
+                        {
+                            <ApprovalFlow ApprovalData="@ApprovalData" />
+                        }
+                        else if (CurrentPartActive == partThree)
+                        {
+                            <AssignedEmployee CrId="@aCrInfromation.Id" />
+                        }
+
+                        <!-- right-aside -->
+                        <aside class="lg:w-80 w-full mt-2 mb-5">
+                            <!-- py-3 -->
+                            <RequesterInfo ACrInfromation="@aCrInfromation" />
+                            <ApproveHistory ApprovalData="@ApprovalData" />
+                        </aside>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+
+@code {
+
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private string FullName { get; set; } = string.Empty;
+    private string bthClass { get; set; }
+    private string profileClass { get; set; }
+    private string FirstLetterOfWord { get; set; }
+
+    private List<NotificationDetailsResponseModel> notificationList { get; set; }
+    private int pageCount { get; set; }
+    private int unReadCount { get; set; }
+    private ApiResponse<PaginationModel<List<NotificationDetailsResponseModel>>> response { get; set; }
+
+    private long CrId { get; set; }
+
+    private ChangeRequestListRequestModel filter { get; set; }
+
+    public int PageSize { get; set; } = 10;
+    public int TotalItems { get; set; }
+    public int CurrentPage { get; set; }
+    public int TotalPages { get; set; }
+
+    private string FileName { get; set; }
+    private string FilePath { get; set; }
+    private string imgUrl { get; set; }
+    private ChangeRequestModel aCrInfromation { get; set; }
+    private List<ChangeRequestModel> changeReqList { get; set; }
+    private string CurrentPartActive { get; set; }
+    private string IsActiveCss { get; set; }
+    public List<CrApprovalFlow> ApprovalData { get; set; }
+
+    private string userRole { get; set; } = "USER";
+
+    protected override async Task OnInitializedAsync()
+    {
+        appState.OnChange += StateHasChanged;
+
+        user = new UserModel();
+        claimsPrincipal = (await authenticationStateTask).User;
+        bthClass = "hidden";
+        profileClass = "hidden";        
+        FirstLetterOfWord = string.Empty;
+        pageCount = 0;
+        unReadCount = 0;
+        response = new ApiResponse<PaginationModel<List<NotificationDetailsResponseModel>>>();
+        response.Data = new PaginationModel<List<NotificationDetailsResponseModel>>();
+        notificationList = new List<NotificationDetailsResponseModel>();
+        aCrInfromation = new ChangeRequestModel();
+        CurrentPartActive = "Current";
+        IsActiveCss = "group-hover:bg-active_bg";
+        ApprovalData = new List<CrApprovalFlow>();
+        userRole = string.Empty;
+        imgUrl = string.Empty;
+        filter = new ChangeRequestListRequestModel();
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            //navigationManager.NavigateTo("/");
+        }
+        else
+        {
+
+            CrId = 0;
+            FullName = await localStorage.GetItemAsync<string>("fullName");
+            userRole = await localStorage.GetItemAsync<string>("roles");
+
+            await LoadData(pageCount);
+
+            if (!userRole.ToUpper().Contains("USER"))
+                await crLoadData(CurrentPage + 1, PageSize);
+
+            if (!string.IsNullOrEmpty(FullName))
+            {
+                var strList = FullName.Trim().Split(" ").ToList();
+                var first = strList.FirstOrDefault();
+                var last = strList.LastOrDefault();
+                FirstLetterOfWord = first[0].ToString() + last[0].ToString();
+            }
+        }       
+
+    }
+
+    public void Dispose()
+    {
+        appState.OnChange -= StateHasChanged;
+    }
+
+    private async void ShowCr(long crid)
+    {
+        filter = new ChangeRequestListRequestModel();
+        filter.CrId = crid;
+        await crLoadData(CurrentPage + 1, PageSize);   
+        await js.InvokeVoidAsync("singleModalOpen");
+    }
+
+    private async Task crLoadData(int pageNumber, int pageSize)
+    {
+        filter.PageNumber = pageNumber;
+        filter.PageSize = pageSize;
+        var response = await _changeRequirementService.GetAllCrList("ChangeRequest/ChangeRequestList", filter);
+        if (response.StatusCode == 200)
+        {
+            changeReqList = response.Data.item;
+            if (changeReqList.Count > 0)
+            {
+                aCrInfromation = changeReqList.FirstOrDefault();
+                await CrApprovalFlowList();
+            }
+
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await crLoadData(CurrentPage, PageSize);
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+    }
+    private async Task ShowCrPart(string part)
+    {
+        CurrentPartActive = part;
+    }
+    private async Task CrApprovalFlowList()
+    {
+        var response = await _crApprovalFlowService.GetAllAsync("CrApprovalFlow/CrApprovalFlowByCrId/" + aCrInfromation.Id);
+        if (response.StatusCode == 200)
+        {
+            ApprovalData = response.Data;
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await CrApprovalFlowList();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+    }
+
+    private async Task ApprocedCr()
+    {
+        var response = await _changeRequirementService.ChangeCrStaurs("CrStatus/UpdateCRApprovedStatus/" + aCrInfromation.Id);
+        if (response.StatusCode == 200)
+        {
+            await showMessage(response);
+            await CrApprovalFlowList();
+            await crLoadData(CurrentPage, PageSize);
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await ApprocedCr();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+    }
+    private async Task RejectCr()
+    {
+        var response = await _changeRequirementService.ChangeCrStaurs("CrStatus/UpdateCRRejectedStatus/" + aCrInfromation.Id);
+        if (response.StatusCode == 200)
+        {
+            await showMessage(response);
+            await CrApprovalFlowList();
+            await crLoadData(CurrentPage, PageSize);
+            await ModalClose();
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await RejectCr();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+    }
+    private async Task ModalClose()
+    {
+        await js.InvokeVoidAsync("singleModalClose");
+    }
+
+    private async Task ChangeProfileBtnClass()
+    {
+        await js.InvokeVoidAsync("ChangeProfileBtnClass");
+    }
+
+    private async Task showNotificationBtn()
+    {
+        await js.InvokeVoidAsync("showNotificationBtn");
+        UnreadToRead();
+        unReadCount = 0;
+    }
+
+
+    private async Task GetNotification()
+    {
+        pageCount = notificationList.Count;
+        await LoadData(pageCount);
+    }
+
+    private async Task LoadData(int pageCount)
+    {
+        response = await _notificationServie.GetAllNotification("NotificationDetails/NotificationDetailsList/" + pageCount);
+        if (response.StatusCode == 200)
+        {
+            if (notificationList.Count < response.Data.totalRecords)
+            {
+                unReadCount = response.Data.pageSize;
+                notificationList.AddRange(response.Data.item);
+                StateHasChanged();
+            }            
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await LoadData(pageCount);
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+    }
+
+    private async Task UnreadToRead()
+    {
+        var notifyResponse = await _notificationServie.NotificationUnreadToRead("NotificationDetails/NotificationUnreadToRead");
+        if (notifyResponse.StatusCode == 200)
+        {
+            GetNotification();
+        }
+        else if (notifyResponse.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = notifyResponse.Status,
+                    StatusCode = notifyResponse.StatusCode,
+                    Message = notifyResponse.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await UnreadToRead();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = notifyResponse.Status,
+                    StatusCode = notifyResponse.StatusCode,
+                    Message = notifyResponse.Message
+                };
+            await showMessage(newResponse);
+        }
+    }
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess(apiResponse.Message);
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                navigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            toastService.ShowError(apiResponse.Message);
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+
+
+
+    public async Task Logout()
+    {
+        await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+        navigationManager.NavigateTo("/");
+    }
+}

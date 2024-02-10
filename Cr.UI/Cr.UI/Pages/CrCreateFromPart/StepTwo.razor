@@ -1,0 +1,345 @@
+﻿@page "/StepTwo"
+
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using Cr.UI.Data.StateManagement;
+@using Newtonsoft.Json;
+
+@inject SpinnerState _spinnerService;
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IChangeRequirementService _changeRequirmentService;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject AuthenticationStateProvider authenticationStateProvider;
+@inject IMenuAndPermissionService _menuPermissionService;
+@inject IJSRuntime js
+@inject AppState AppState
+@implements IDisposable
+
+
+@if (stepTwoRequest == null)
+{
+    <p>Loading....</p>
+}
+else
+{
+    if (getPermission == null)
+    {
+
+    }
+    else if (getPermission.Count == 0)
+    {
+
+    }
+    else
+    {
+        <!-- FORM -->
+        <div class="flex-1 lg:pr-2 md:px-5 px-1">
+            <!-- check -->
+            <!-- page-2=form-1 - start -->
+            <EditForm class="py-5" id="step-two-form-btn" EditContext="@context" OnValidSubmit="@SaveReq">
+                <DataAnnotationsValidator />
+                <!-- action="#" -->
+                <h2 class="font-semibold">
+                    Existing Status & Change Impact
+                </h2>
+
+                <!-- 1st-textarea -->
+                <div class="flex md:gap-3 flex-col md:flex-row">
+                    <!-- check -->
+                    <!-- 1st-half -->
+                    <div class="py-3 md:w-1/2">
+                        <!-- check -->
+
+                        <label for="ChangeFromExisting" class="text-my_gray font-semibold">
+                            <!-- check -->
+                            Change From (existing status)
+                        </label>
+
+                        <textarea name="ChangeFromExisting" id="ChangeFromExisting" cols="32" rows="5" @bind="stepTwoRequest.ChangeFromExisting"
+                                  placeholder="Enter Descriptions"
+                                  class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+
+                        <p class="text-rose-600"><ValidationMessage For="@(()=>stepTwoRequest.ChangeFromExisting)" /></p>
+                    </div>
+
+                    <!-- 2nd-half -->
+                    <div class="py-3 md:w-1/2">
+                        <!-- check -->
+
+                        <label for="ChangeToAfter" class="text-my_gray font-semibold">
+                            <!-- check -->
+                            Change To (change after)
+                        </label>
+
+                        <textarea name="ChangeToAfter" id="ChangeToAfter" cols="32" rows="5" @bind="stepTwoRequest.ChangeToAfter"
+                                  placeholder="Enter Descriptions"
+                                  class="block w-full border px-2 py-1 rounded border-light_gray mt-2"></textarea>
+                        <p class="text-rose-600"><ValidationMessage For="@(()=>stepTwoRequest.ChangeToAfter)" /></p>
+                    </div>
+                </div>
+
+                <!-- 3rd-textarea -->
+                <div class="py-3">
+                    <label for="Justification" class="text-my_gray font-semibold">
+                        <!-- check -->
+                        Justification (Justify why the proposed changes should be)
+                    </label>
+
+                    <textarea name="ChangeImpactDescription" id="ChangeImpactDescription" cols="30" rows="5"
+                              placeholder="Enter Descriptions" @bind="stepTwoRequest.Justification"
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2"></textarea>
+
+                    <p class="text-rose-600"><ValidationMessage For="@(()=>stepTwoRequest.Justification)" /></p>
+                </div>
+
+                <!-- 2nd-textarea -->
+                <div class="py-3">
+                    <label for="ChangeImpactDescription" class="text-my_gray font-semibold">
+                        <!-- check -->
+                        Change Impact Description (Explain the impact of the proposed change)
+                    </label>
+
+                    <textarea name="Justification" id="Justification" cols="30" rows="7"
+                              placeholder="Enter Descriptions" @bind="stepTwoRequest.ChangeImpactDescription"
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2"></textarea>
+
+                    <p class="text-rose-600"><ValidationMessage For="@(()=>stepTwoRequest.ChangeImpactDescription)" /></p>
+                </div>
+            </EditForm>
+            <!-- page-2=form-1 - end -->
+            <!-- form-btn-out of form start  -->
+            @if ((getPermission["tempchangerequest/addtempchangerequest"]))
+            {
+                <div class="flex justify-between md:p-5 px-3 py-5 w-full bottom-0 sticky bg-white rounded top ">
+                    <!-- check -->
+                    <!-- flex justify-between -->
+
+                    <a href="stepOne" form="form-btn"
+                       class="bg-white border border-my_dark md:px-6 md:py-2 px-2 py-1 rounded text-my_dark hover:bg-my_dark hover:text-white ease-in-out duration-300 flex gap-2 items-center justify-center group">
+                        <!-- check -->
+                        <img src="assets/left-arrow.svg" alt="left-arrow-icon" class="cus-white-filter pt-[2px]">
+
+                        Back
+
+                    </a>
+
+                    <div class=" flex md:gap-3 gap-1 justify-end">
+                        <!-- check -->
+
+                        <button form="step-two-form-btn" type="submit"
+                                class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+                            <!-- check -->
+                            Save & Continue
+
+                        </button>
+
+                        @*<button form="step-two-form-btn" type="button"
+            class="border border-light_gray md:px-6 md:py-2 px-2 py-1 rounded hover:text-my_blue hover:border-my_blue ease-in-out duration-300">
+            <!-- check -->
+            Cancel
+            </button>*@
+
+                    </div>
+
+                </div>
+            }
+
+
+            <!-- form-btn-out of form end  -->
+
+        </div>
+
+    }
+    
+}
+
+
+@code {
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    EditContext context;
+    private StepTwoRequestModel stepTwoRequest { get; set; }
+
+    IDictionary<string, bool> getPermission { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        user = new UserModel();
+        stepTwoRequest = new StepTwoRequestModel();
+        context = new EditContext(stepTwoRequest);
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+            
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if (permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+
+            AppState.OnChange += StateHasChanged;
+            var unCompleteData = await localStorage.GetItemAsync<TempChangeRequestedInfo>("uncompleteCr");
+            if (unCompleteData != null)
+            {
+                stepTwoRequest.ChangeFromExisting = unCompleteData.ChangeFromExisting;
+                stepTwoRequest.ChangeToAfter = unCompleteData.ChangeToAfter;
+                stepTwoRequest.ChangeImpactDescription = unCompleteData.ChangeImpactDescription;
+                stepTwoRequest.Justification = unCompleteData.Justification;
+            }
+        }
+        _spinnerService.Hide();
+    }
+    public void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged;
+    }
+
+    private async Task SaveReq()
+    {
+        _spinnerService.Show();
+        if (!(getPermission["tempchangerequest/addtempchangerequest"]))
+        {
+            _spinnerService.Hide();
+            toastService.ShowError("permission denied.");
+            return;
+        }
+        var response = await _changeRequirmentService.StepTwoRequest(stepTwoRequest);
+
+        if (response.StatusCode == 200)
+        {
+            int stepPosition = 2;
+            await localStorage.SetItemAsync<TempChangeRequestedInfo>("uncompleteCr", response.Data);
+            var steps = await localStorage.GetItemAsync<List<CrCreateStepsModel>>("CrSteps");
+            var nextStep = steps.FirstOrDefault(x => x.StapNumber == (stepPosition + 1));
+            if (nextStep.IsCompleted == false && nextStep.StapImage == null)
+            {
+                steps = await userService.ChangeSteps(steps, stepPosition);
+            }
+            //await AppState.SetDataFunction(steps);
+            await InvokeAsync(async () =>
+            {
+                await AppState.SetDataFunction(steps);
+            });
+
+            if (nextStep.IsCompleted == true && nextStep.StapImage == null)
+            {
+                NavigationManager.NavigateTo(nextStep.RouteName);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/StepThree");
+            }
+
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await SaveReq();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess("Change request's existing status & change impact created successfully.");
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+}
+
+
+
+
+
+

@@ -1,0 +1,352 @@
+﻿@page "/StepFour"
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using Cr.UI.Data.StateManagement;
+@using Newtonsoft.Json;
+
+@inject SpinnerState _spinnerService;
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IChangeRequirementService _changeRequirmentService;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject AuthenticationStateProvider authenticationStateProvider;
+@inject IMenuAndPermissionService _menuPermissionService;
+@inject AppState AppState
+@implements IDisposable
+
+@if (getPermission == null)
+{
+
+}
+else if (getPermission.Count == 0)
+{
+
+}
+else
+{
+    <!-- FORM -->
+    <div class="flex-1 lg:pr-2 md:px-5 px-1">
+        <!-- check -->
+        <!-- page-3=form-1 - start -->
+        <EditForm class="py-5" id="step-four-form-btn" EditContext="@context" OnValidSubmit="@SaveReq">
+            <DataAnnotationsValidator />
+            <!-- action="#" -->
+            <h2 class="font-semibold">
+                Risk factor
+            </h2>
+
+            <p class="text-my_gray pt-1">
+                <!-- check -->
+                Explain the impact if the proposed change is not implemented and risk after change
+            </p>
+
+            <div class="py-3">
+
+                <div class="flex md:gap-5 gap-3 flex-col md:flex-row">
+                    <label for="risk" class="text-my_gray font-semibold">Level of risk :</label>
+                    <!-- check -->
+                    <InputRadioGroup Name="RiskFactor" @bind-Value="@stepFourRequest.LevelOfRisk">
+                        <ul class="space-x-5 flex">
+
+                            <!-- 1-checkbox -->
+                            <li class="flex items-center gap-3 ">
+
+                                @*<input type="checkbox" name="cr-ck" id="High" value="High"
+                            class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer ">*@
+                                <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="High" Value="@("High")" />
+                                <!-- check -->
+                                <label for="High" class="text-my_gray block cursor-pointer">
+                                    <!-- check -->
+                                    High
+                                </label>
+                            </li>
+
+                            <!-- 2-checkbox -->
+                            <li class="flex items-center gap-3 ">
+
+                                @*<input type="checkbox" name="cr-ck" id="Medium" value="Medium"
+                            class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer ">*@
+                                <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Medium" Value="@("Medium")" />
+                                <!-- check -->
+                                <label for="Medium" class="text-my_gray block cursor-pointer">
+                                    <!-- check -->
+                                    Medium
+                                </label>
+                            </li>
+
+                            <!-- 3-checkbox -->
+                            <li class="flex items-center gap-3 ">
+
+                                @*<input type="checkbox" name="cr-ck" id="Low" value="Low"
+                            class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer ">*@
+                                <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" id="Low" Value="@("Low")" />
+                                <!-- check -->
+                                <label for="Low" class="text-my_gray block cursor-pointer">
+                                    <!-- check -->
+                                    Low
+                                </label>
+                            </li>
+                        </ul>
+                    </InputRadioGroup>
+                </div>
+
+
+                <p class="text-rose-600"><ValidationMessage For="@(()=>stepFourRequest.LevelOfRisk)" /></p>
+
+            </div>
+
+            <!-- 1st-textarea -->
+            <div class="py-3">
+                <textarea name="LevelOfRiskDescription" id="LevelOfRiskDescription" cols="30" rows="5"
+                          placeholder="Level of risk description" @bind="@stepFourRequest.LevelOfRiskDescription"
+                          class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                <p class="text-rose-600"><ValidationMessage For="@(()=>stepFourRequest.LevelOfRiskDescription)" /></p>
+
+            </div>
+
+            <!-- 2nd-textarea -->
+            <div class="py-3">
+
+                <h2 class="font-semibold">Alternatives</h2>
+
+                <label for="AlternativeDescription" class="text-my_gray pt-3">
+                    <!-- check -->
+                    Provide up to three alternatives that could be implemented instead of the
+                    proposed change) – If applicable
+                </label>
+
+                <textarea name="AlternativeDescription" id="AlternativeDescription" cols="30" rows="5"
+                          placeholder="Enter Descriptions" @bind="@stepFourRequest.AlternativeDescription"
+                          class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                <p class="text-rose-600"><ValidationMessage For="@(()=>stepFourRequest.AlternativeDescription)" /></p>
+
+            </div>
+        </EditForm>
+        <!-- page-3=form-1 - end -->
+        <!-- form-btn-out of form start  -->
+
+        <div class="flex justify-between md:p-5 px-3 py-5 w-full bottom-0 sticky bg-white rounded top ">
+            <!-- check -->
+            <!-- flex justify-between -->
+
+            <a href="stepThree" form="form-btn"
+               class="bg-white border border-my_dark md:px-6 md:py-2 px-2 py-1 rounded text-my_dark hover:bg-my_dark hover:text-white ease-in-out duration-300 flex gap-2 items-center justify-center group">
+                <!-- check -->
+                <img src="assets/left-arrow.svg" alt="left-arrow-icon" class="cus-white-filter pt-[2px]">
+
+                Back
+
+            </a>
+            @if ((getPermission["tempchangerequest/addtempchangerequest"]))
+            {
+                <div class=" flex md:gap-3 gap-1 justify-end">
+                    <!-- check -->
+
+                    <button form="step-four-form-btn" type="submit"
+                            class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+                        <!-- check -->
+                        Save & Continue
+
+                    </button>
+
+                    @*<button form="step-four-form-btn" type="button"
+            class="border border-light_gray md:px-6 md:py-2 px-2 py-1 rounded hover:text-my_blue hover:border-my_blue ease-in-out duration-300">
+            <!-- check -->
+            Cancel
+            </button>*@
+
+                </div>
+            }
+
+
+        </div>
+
+        <!-- form-btn-out of form end  -->
+
+    </div>
+
+}
+
+
+@code {
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    EditContext context;
+    private StepFourRequestModel stepFourRequest { get; set; }
+    IDictionary<string, bool> getPermission { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        user = new UserModel();
+        stepFourRequest = new StepFourRequestModel();
+        context = new EditContext(stepFourRequest);
+
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+            
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if (permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+
+            AppState.OnChange += StateHasChanged;
+            var unCompleteData = await localStorage.GetItemAsync<TempChangeRequestedInfo>("uncompleteCr");
+            if (unCompleteData != null)
+            {
+                stepFourRequest.LevelOfRisk = unCompleteData.LevelOfRisk;
+                stepFourRequest.LevelOfRiskDescription = unCompleteData.LevelOfRiskDescription;
+                stepFourRequest.AlternativeDescription = unCompleteData.AlternativeDescription;
+            }
+        }
+        _spinnerService.Hide();
+    }
+    public void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged;
+    }
+
+    private async Task SaveReq()
+    {
+        _spinnerService.Show();
+        if (!(getPermission["tempchangerequest/addtempchangerequest"]))
+        {
+            toastService.ShowError("permission denied.");
+            _spinnerService.Hide();
+            return;
+        }
+        var response = await _changeRequirmentService.StepFourRequest(stepFourRequest);
+
+        if (response.StatusCode == 200)
+        {
+            int stepPosition = 4;
+            await localStorage.SetItemAsync<TempChangeRequestedInfo>("uncompleteCr", response.Data);
+            var steps = await localStorage.GetItemAsync<List<CrCreateStepsModel>>("CrSteps");
+            var nextStep = steps.FirstOrDefault(x => x.StapNumber == (stepPosition + 1));
+            if (nextStep.IsCompleted == false && nextStep.StapImage == null)
+            {
+                steps = await userService.ChangeSteps(steps, stepPosition);
+            }
+            //await AppState.SetDataFunction(steps);
+            await InvokeAsync(async () =>
+            {
+                await AppState.SetDataFunction(steps);
+            });
+
+            if (nextStep.IsCompleted == true && nextStep.StapImage == null)
+            {
+                NavigationManager.NavigateTo(nextStep.RouteName);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/StepFour");
+            }
+
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await SaveReq();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess("Change request's risk factor & alternatives created successfully.");
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+}
+

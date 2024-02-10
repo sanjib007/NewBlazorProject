@@ -1,0 +1,60 @@
+﻿@page "/signup"
+@inject IJSRuntime jsRunTime
+
+<section class="flex sm:max-lg:bg-[url('/assets/login-background.png')] sm:max-lg:bg-left sm:max-lg:bg-no-repeat sm:max-lg:bg-cover">
+    <div class="xs:max-lg:hidden h-screen bg-[url('/assets/login-background.png')] bg-left bg-no-repeat bg-cover w-1/2 flex items-center justify-center">
+        <div class="img-wrapper">
+            <img src="/assets/login-icon.svg" alt="login-icon" class="max-w-full" />
+        </div>
+    </div>
+    <div class="xs:max-lg:w-full xs:max-lg:h-screen form-portion w-1/2 self-stretch flex items-center justify-center">
+        <div class="form-items w-[385px] p-7 bg-white rounded-md xs:max-sm:p-2">
+            <div class="form-upper-icon hidden xs:max-lg:flex justify-center items-center">
+                <div class="img-wrapper">
+                    <img src="/assets/link3.svg" class="w-[85px]" alt="" />
+                </div>
+            </div>
+            <div class="form-title mb-9">
+                <h1 class="text-[36px] font-medium mb-3">Sign Up</h1>
+                <p class="font-medium text-[14px]">
+                    Already Registered? <a href="" class="text-[#0079FF]">Log In</a>
+                </p>
+            </div>
+            <form action="" class="">
+                <label class="mb-6 block w-full font-medium">
+                    Username
+                    <br />
+                    <input class="w-full py-[8px] text-[#84818A] border-b-2 border-[#84818A] transition duration-300 ease-in-out focus:outline-0 focus:border-b-2 focus:border-[#034EA1] focus:text-black"
+                           type="text"
+                           name="username"
+                           placeholder="Username" />
+                </label>
+                <label class="mb-6 block w-full font-medium">
+                    Email address
+                    <br />
+                    <input class="w-full py-[8px] text-[#84818A] border-b-2 border-[#84818A] transition duration-300 ease-in-out focus:outline-0 focus:border-b-2 focus:border-[#034EA1] focus:text-black"
+                           type="email"
+                           name="email"
+                           placeholder="abc@abc.com" />
+                </label>
+                <label class="mb-9 block w-full font-medium">
+                    Password <br />
+                    <input class="w-full py-[8px] text-[#84818A] border-b-2 border-[#84818A] transition duration-300 ease-in-out focus:outline-0 focus:border-b-2 focus:border-[#034EA1]"
+                           type="password"
+                           name="password"
+                           placeholder="Enter your password" />
+                </label>
+                <div class="btn-n-links flex justify-end items-center">
+                    <button type="submit"
+                            class="font-medium text-white py-[14px] px-[60px] bg-[#034EA1] rounded-[6px] transition duration-300 ease-in-out hover:opacity-[0.9]">
+                        Sign Up
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@code {
+
+}

@@ -1,0 +1,104 @@
+﻿@using Cr.UI.Data;
+
+
+@if (ApprovalData == null)
+{
+    <p>Loading...</p>
+}
+else if (ApprovalData.Count() == 0)
+{
+    <p>No Data Found</p>
+}
+else
+{
+    <div class="history">
+        <button class="flex justify-between items-center w-full bg-[#f9f9f9] py-[9px] px-[18px]  outline outline-[#efefef] font-medium text-sm">
+            History
+            <img src="/assets/down-fill-arrow.svg"
+                 alt="down-fill-arrow-icon"
+                 class="cus-black-filter h-3 aspect-square" />
+        </button>
+        <div class="cr-flow pl-[18px] py-3 bg-white outline outline-[#efefef] lg:h-[500px] scroll lg:overflow-y-scroll">
+            <table class="border-separate border-spacing-4 w-full overflow-x-scroll scroll" cellspacing="0" cellpadding="0">
+                <tbody class="">
+                    @foreach (var aData in ApprovalData.FindAll(x=> x.IsActive == true).ToList())
+                    {
+                        if (!string.IsNullOrEmpty(aData.Status))
+                        {
+                            <tr>
+                                <td>
+                                    <table class="border-separate border-spacing-2 border-l-2 relative">
+                                        <thead>
+                                            <tr class="font-medium text-xs">
+                                                <th width="40%" class="pl-[20px] pb-[10px]">@aData.Status</th>
+                                                <th width="60%">
+                                                    <div class="fill-creator p-2 w-fit bg-white absolute top-[-7.5px] left-[-25px]">
+                                                        <div class="img-wrapper w-8 aspect-square rounded-full overflow-hidden border-2 border-white outline outline-[#eaeaea]">
+                                                            <img class="w-full"
+                                                                 src="/assets/avatar.jpg"
+                                                                 alt="user-avatar" />
+                                                        </div>
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody class="">
+                                            <tr class="font-normal text-xs ">
+
+                                                <td class="flex gap-3 ">
+
+                                                    <p class="w-[70px] whitespace-nowrap">
+                                                        @aData.Status by:
+                                                    </p>
+
+                                                    <a class="text-blue-600 max-lg:whitespace-nowrap">@aData.ApproverName</a>
+                                                    
+                                                </td>
+                                                
+                                                @*<td class="w-fit">@aData.Status by:</td>
+                                                <td class="w-fit">
+                                                    <a class="text-blue-600">@aData.ApproverName</a>
+                                                </td>*@
+                                            </tr>
+                                            <tr class="font-normal text-xs ">
+
+                                                <td class="flex gap-3">
+                                                    <p class="w-[70px] whitespace-nowrap">
+                                                        Date:
+                                                    </p>
+
+                                                    <p class="whitespace-nowrap">
+                                                        @aData.StatusDate
+                                                    </p>
+                                                </td>
+
+                                                @*<td class ="w-fit">Date:</td>
+                                                <td class="w-fit">@aData.StatusDate</td>*@
+                                            </tr>
+                                        </tbody>
+
+                                    </table>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+
+
+@code {
+
+    [Parameter] public List<CrApprovalFlow> ApprovalData { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ApprovalData = new List<CrApprovalFlow>();
+        
+    }
+
+}

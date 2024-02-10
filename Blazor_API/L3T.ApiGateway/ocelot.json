@@ -1,0 +1,218 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/connect/token",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/connect/token",
+      "UpstreamHttpMethod": [ "Post" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Authorization/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/Authorization/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Get" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/account/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/account/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Client/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/Client/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ChangeRequirement/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/ChangeRequirement/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/assignemployee/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/assignemployee/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get" ]
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/tempchangerequest/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/tempchangerequest/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/changerequest/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/changerequest/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/assigntoemployee/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/assigntoemployee/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/crstatus/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/crstatus/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/crapprovalflow/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/crapprovalflow/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/crdefaultapprovalflow/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/crdefaultapprovalflow/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/NotificationDetails/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/NotificationDetails/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+
+
+
+    {
+      "DownstreamPathTemplate": "/api/MenuSetupAndPermission/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7225
+        }
+      ],
+      "UpstreamPathTemplate": "/api/MenuSetupAndPermission/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Test/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7210
+        }
+      ],
+      "UpstreamPathTemplate": "/api/Test/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/CustomerInfo/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7210
+        }
+      ],
+      "UpstreamPathTemplate": "/api/CustomerInfo/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/TrackingIssue/{everything}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7210
+        }
+      ],
+      "UpstreamPathTemplate": "/api/TrackingIssue/{everything}",
+      "UpstreamHttpMethod": [ "Post", "Put", "Get", "Delete" ]
+    }
+
+
+  ],
+
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:7187"
+  }
+}

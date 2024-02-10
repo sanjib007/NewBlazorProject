@@ -1,0 +1,135 @@
+﻿@page "/"
+@using IPV6ConfigBlazorWA.Model;
+@using IPV6ConfigBlazorWA.Model.DataModel;
+@inject IJSRuntime JS
+
+@inject IIPV6ConfigSetupService<IPV6_PrimarySubnetModel> _primarySubnetService;
+@inject IIPV6ConfigSetupService<IPV6_DivisionSubnet32Model> _divisionSubnetService;
+@inject IIPV6ConfigSetupService<IPV6_UserTypeSubnet36Model> _userTypeSubnetService;
+@inject IIPV6ConfigSetupService<IPV6_CitySubnet44Model> _citySubnetService;
+@inject IIPV6ConfigSetupService<IPV6_BTSSubnet48Model> _btsSubnetService;
+@inject IIPV6ConfigSetupService<IPV6_ParentSubnet56Model> _parentSubnetService;
+@inject IIPV6ConfigSetupService<IPV6_CustomerSubnet64Model> _customerSubnetService;
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+<div class="input-wrap">
+    <form action="javascript:void(0);">
+        <div class="multi-fields">
+            <div class="form-group mr-1">
+                <label>Network address block</label>
+                @* <input type="text" class="form-control" id="ipv6AddressBlock" autocorrect="off"
+                       autocapitalize="none"> *@
+                <InputText id="ipv6AddressBlock" Value="@ipv6AddressBlockValue" ValueChanged="ipv6AddressBlockOnChange" ValueExpression="() => ipv6AddressBlockValue"></InputText>
+            </div>
+            <div class="form-group ml-1 select-field">
+                <label>Number of Subnets</label>
+                <select id="ipv6SubnetBitsVsNoOfSubnets" class="form-control" @onchange="ipv6SubnetBitsVsNoOfSubnetsOnChange">
+                    <option value="0">/8 (1 subnet)</option>
+                    <option value="1">/9 (2 subnets)</option>
+                    <option value="2">/10 (4 subnets)</option>
+                    <option value="3">/11 (8 subnets)</option>
+                    <option value="4">/12 (16 subnets)</option>
+                    <option value="5">/13 (32 subnets)</option>
+                    <option value="6">/14 (64 subnets)</option>
+                    <option value="7">/15 (128 subnets)</option>
+                    <option value="8">/16 (256 subnets)</option>
+                    <option value="9">/17 (512 subnets)</option>
+                    <option value="10">/18 (1024 subnets)</option>
+                    <option value="11">/19 (2048 subnets)</option>
+                    <option value="12">/20 (4096 subnets)</option>
+                    <option value="13">/21 (8192 subnets)</option>
+                    <option value="14">/22 (16384 subnets)</option>
+                    <option value="15">/23 (32768 subnets)</option>
+                    <option value="16">/24 (65536 subnets)</option>
+                    <option value="17">/25 (131072 subnets)</option>
+                    <option value="18">/26 (262144 subnets)</option>
+                    <option value="19">/27 (524288 subnets)</option>
+                    <option value="20">/28 (1048576 subnets)</option>
+                    <option value="21">/29 (2097152 subnets)</option>
+                    <option value="22">/30 (4194304 subnets)</option>
+                    <option value="23">/31 (8388608 subnets)</option>
+                    <option value="24">/32 (16777216 subnets)</option>
+                    <option value="25">/33 (33554432 subnets)</option>
+                    <option value="26">/34 (67108864 subnets)</option>
+                    <option value="27">/35 (134217728 subnets)</option>
+                    <option value="28">/36 (268435456 subnets)</option>
+                    <option value="29">/37 (536870912 subnets)</option>
+                    <option value="30">/38 (1073741824 subnets)</option>
+                    <option value="31">/39 (2147483648 subnets)</option>
+                    <option value="32">/40 (4294967296 subnets)</option>
+                    <option value="33">/41 (8589934592 subnets)</option>
+                    <option value="34">/42 (17179869184 subnets)</option>
+                    <option value="35">/43 (34359738368 subnets)</option>
+                    <option value="36">/44 (68719476736 subnets)</option>
+                    <option value="37">/45 (137438953472 subnets)</option>
+                    <option value="38">/46 (274877906944 subnets)</option>
+                    <option value="39">/47 (549755813888 subnets)</option>
+                    <option value="40">/48 (1099511627776 subnets)</option>
+                    <option value="41">/49 (2199023255552 subnets)</option>
+                    <option value="42">/50 (4398046511104 subnets)</option>
+                    <option value="43">/51 (8796093022208 subnets)</option>
+                    <option value="44">/52 (17592186044416 subnets)</option>
+                    <option value="45">/53 (35184372088832 subnets)</option>
+                    <option value="46">/54 (70368744177664 subnets)</option>
+                    <option value="47">/55 (140737488355328 subnets)</option>
+                    <option value="48">/56 (281474976710656 subnets)</option>
+                    <option value="49">/57 (562949953421312 subnets)</option>
+                    <option value="50">/58 (1125899906842624 subnets)</option>
+                    <option value="51">/59 (2251799813685248 subnets)</option>
+                    <option value="52">/60 (4503599627370496 subnets)</option>
+                    <option value="53">/61 (9007199254740992 subnets)</option>
+                    <option value="54">/62 (18014398509481984 subnets)</option>
+                    <option value="55">/63 (36028797018963970 subnets)</option>
+                    <option value="56">/64 (72057594037927940 subnets)</option>
+                </select>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+
+
+@code{
+
+    private string Message { get; set; }
+    private string ipv6AddressBlockValue { get; set; }
+    private bool checkJsCall { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (checkJsCall)
+        {
+            // call setDefaultIPv6Values() form js file
+            JS.InvokeAsync<string>("setDefaultIPv6Values");
+
+            // call calculateAndUpdateValues('setNoOfSubnets');
+            JS.InvokeAsync<string>("calculateAndUpdateValues", "setNoOfSubnets");
+            checkJsCall = false;
+        }
+        
+    }
+
+    private void ipv6AddressBlockOnChange()
+    {
+        var result = JS.InvokeAsync<string>("calculateAndUpdateValues", "setAddress");
+    }
+
+    private void ipv6SubnetBitsVsNoOfSubnetsOnChange(ChangeEventArgs e)
+    {
+        var result = JS.InvokeAsync<string>("calculateAndUpdateValues", "setNoOfSubnets");
+    }
+}

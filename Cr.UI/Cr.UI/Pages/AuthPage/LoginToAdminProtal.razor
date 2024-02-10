@@ -1,0 +1,94 @@
+﻿@page "/LoginToAdminPortal"
+@*@page "/LoginToAdminPortal/{User}/{Pass}"*@
+
+@using System.Security.Claims;
+@using Cr.UI.Data;
+@using Cr.UI.Services.Interface;
+@using Microsoft.AspNetCore.WebUtilities;
+@using Cr.UI.Data.StateManagement;
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IJSRuntime jsRunTime
+@inject IToastService toastService
+
+@inject SpinnerState _spinnerService;
+
+
+
+@code {
+
+    [Parameter]
+    public string user { get; set; }
+
+    [Parameter]
+    public string Pass { get; set; }
+
+
+    private UserModel userModel;
+    public string LoginMesssage { get; set; }
+    //ClaimsPrincipal claimsPrincipal;
+
+    //[CascadingParameter]
+    //private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        userModel = new UserModel();
+
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+
+        var queryParam = QueryHelpers.ParseQuery(uri.Query);
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("User", out var _user))
+        {
+            userModel.UserName = _user;
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("Pass", out var _pass))
+        {
+            userModel.Password = _pass;
+        }
+        await LoginMethod();
+
+        //claimsPrincipal = (await authenticationStateTask).User;
+        //delay();
+        //if (claimsPrincipal.Identity.IsAuthenticated)
+        //{
+        //    NavigationManager.NavigateTo("/index");
+        //}
+        //else
+        //{
+        //    await userService.removedLocalStorage();
+        //}
+    }
+
+    private async Task<bool> LoginMethod()
+    {
+        //if (string.IsNullOrEmpty(userModel.UserName) && string.IsNullOrEmpty(userModel.Password))
+        //{
+        //    NavigationManager.NavigateTo("/");
+        //}
+        var returnedUser = await userService.LoginAsync(userModel);
+        //Task.Delay(3000);
+        if (returnedUser.Subject != null && string.IsNullOrEmpty(returnedUser.Status))
+        {
+            await ((CustomAuthenticationStateProvidore)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/index");
+        }
+        else
+        {
+            toastService.ShowError(returnedUser.Message);
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+            //LoginMesssage = "Invalid username or password";
+            
+        }
+
+        return await Task.FromResult(true);
+    }
+
+}

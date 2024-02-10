@@ -1,0 +1,1115 @@
+﻿@page "/ApprovalFlowSetup"
+
+
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ApprovalFlow;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.CrStatus;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using System.Globalization;
+@using Microsoft.AspNetCore.Components.Web.Extensions.Head
+@using Newtonsoft.Json;
+@using Cr.UI.Data.StateManagement;
+@inject SpinnerState _spinnerService;
+
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject IJSRuntime js
+@inject IUserService userService
+
+@inject IMenuAndPermissionService _menuPermissionService;
+@inject IApprovalFlowSetupService _crApprovalFlowSetupService;
+
+
+
+
+
+
+
+
+<Title Value="Approval Flow Setup" />
+
+<div class="h-fit w-[80%] mt-20 ml-[12px]">
+    @{
+        var main = "main";
+        var other = "other";
+        var update = "Update";
+        //var adduser = "AddUser";
+    }
+    <!-- mr-2 -->
+    <!-- container -->
+    <!-- upper-section -->
+    <section class="bg-white flex flex-col md:flex-row gap-5 md:items-center items-start justify-between px-6 py-3 mb-2">
+        <div>
+            <p class="text-sm pb-2"><span class="text-my_gray">Change Request / </span>Approval Flow Setup</p>
+
+            <a href="/index"
+               class="flex items-center text-xl gap-4 hover:text-my_blue duration-300 rounded-full group">
+                <span>
+                    <img src="/assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
+                </span>
+                Approval Flow Setup
+            </a>
+        </div>
+
+        @*<button @onclick="(()=>ShowCrDetails(adduser))"
+                class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
+            <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+            Add User
+        </button>*@
+
+        <button @onclick="(()=>ShowCrDetails(main))"
+                class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
+            <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+            Create Main Approver
+        </button>
+
+        <button @onclick="(()=>ShowCrDetails(other))"
+                class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
+            <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+            Create Other Approver
+        </button>
+    </section>
+
+    @if (PrimaryDefaultApprovalFlow == null)
+    {
+        <p>Loading....</p>
+    }
+    else if (PrimaryDefaultApprovalFlow.Count() == 0)
+    {
+        <p>No data found.</p>
+    }
+    else
+    {
+        <section class="mt-8">
+
+            <h2>Department : Information & Innovation  </h2>
+            <div class="overflow-x-scroll scroll border-t border-x border-light_gray rounded-sm">
+                @* <button @onclick="(()=>ShowCrDetails(other))"
+                        class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
+                    <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+                    Rearrange Primary Approval Flow
+                </button> *@
+                <table class="w-full whitespace-nowrap overflow-x-scroll scroll text-black ">
+                    <thead class="bg-[#FAFAFA]">
+                        <tr class="border-b border-light_gray">
+                            <th class="border-r border-light_gray ">
+                                <button class="py-2 px-3 flex gap-2 items-center justify-center w-full hover:bg-active_bg duration-300 ease-in-out">
+                                    Name (Id)
+                                </button>
+                            </th>
+                            <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                L3Id
+                            </th>
+                            <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                Department
+                            </th>
+                            <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                Sequence
+                            </th>
+                            <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                Parent Id
+                            </th>
+                            <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                Primary Approver
+                            </th>
+                            <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                Is Active
+                            </th>
+                            @*<th class="py-2 px-3 text-start">
+                                Action
+                            </th>*@
+                            <!-- &nbsp; -->
+                            <!-- <th class="py-2 px-3 ">Edit - Delete</th> -->
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white text-start">
+                        @{
+                            if (PrimaryDefaultApprovalFlow.Count > 0)
+                            {
+                                foreach (var aInfo in PrimaryDefaultApprovalFlow)
+                                {
+                                    <!-- 1st-High-Approved -->
+                                    <tr class="border-b border-light_gray">
+                                        <td class="py-2 px-3 border-r border-light_gray ">
+                                            <span>@aInfo.ApproverName</span>(@aInfo.Id)
+                                        </td>
+                                        <td class="py-2 px-3 border-r border-light_gray ">
+                                            @aInfo.ApproverEmpId
+                                        </td>
+                                        <td class="py-2 px-3 border-x border-light_gray ">
+                                            @aInfo.Department
+                                        </td>
+                                        <td class="py-2 px-3 border-r border-light_gray ">
+                                            @aInfo.ApproverFlow
+                                        </td>
+                                        <td class="py-2 px-3 border-r border-light_gray ">
+                                            @aInfo.ParentId
+                                        </td>
+                                        <td class="py-2 px-3 border-r border-light_gray text-center">
+                                            @(aInfo.IsPrincipleApprover == true ? "Yes" : "No")
+                                        </td>
+                                        <td class="py-2 px-3 border-r border-light_gray text-center">
+                                            @if(aInfo.ParentId != 0)
+                                            {
+                                                @(aInfo.IsActive == true ? "Yes" : "No")
+                                                <label class="relative inline-flex cursor-pointer items-center">
+                                                    <input id="switch-3" type="checkbox" class="peer sr-only"
+                                                           checked="@aInfo.IsActive" @onclick="@(() => CheckboxChanged(aInfo))" />
+                                                    <label for="switch-3" class="hidden"></label>
+                                                    <div class="peer h-4 w-11 rounded border bg-slate-200 after:absolute after:-top-1 after:left-0 after:h-6 after:w-6 after:rounded-md after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-300 peer-checked:after:translate-x-full peer-focus:ring-green-300">
+                                                    </div>
+                                                </label>
+                                            }
+                                        </td>
+                                        @*<td class="py-2 px-3 text-center">
+                                            <div class="bg-[#0038ff] bg-opacity-10 text-[#0038ff] text-xs py-1 px-2 font-semibold rounded-full pointer" @onclick="(()=>ShowCrDetails(update))">
+                                                Update
+                                            </div>
+                                        </td>*@
+                                    </tr>
+                                }
+                            }
+
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <br />
+
+            <!-- department wise table show -->
+            <!-- dashboard-table -->
+            <!-- flex flex-col lg:flex-row lg:gap-16 gap-1 justify-center lg:justify-start lg:items-start -->
+            @foreach (var aDepartment in AllDepartment)
+            {
+                var departmentList = AllDefaultApprovalFlow.FindAll(x => x.Department == aDepartment).ToList();
+                if (departmentList.Count > 0)
+                {
+                    <h2>Department : @aDepartment </h2>
+                    <div class="overflow-x-scroll scroll border-t border-x border-light_gray rounded-sm">
+                        <table class="w-full whitespace-nowrap overflow-x-scroll scroll text-black ">
+                            <thead class="bg-[#FAFAFA]">
+                                <tr class="border-b border-light_gray">
+                                    <th class="border-r border-light_gray ">
+                                        <button class="py-2 px-3 flex gap-2 items-center justify-center w-full hover:bg-active_bg duration-300 ease-in-out">
+                                            Name (Id)
+                                        </button>
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        L3Id
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Department
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Sequence
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Parent Id
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Primary Approver
+                                    </th>
+                                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                                        Is Active
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white text-start">
+                                @{
+
+
+                                    foreach (var aInfo in departmentList)
+                                    {
+                                        <!-- 1st-High-Approved -->
+                                        <tr class="border-b border-light_gray">
+                                            <td class="py-2 px-3 border-r border-light_gray ">
+                                                <span>@aInfo.ApproverName</span>(@aInfo.Id)
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray ">
+                                                @aInfo.ApproverEmpId
+                                            </td>
+                                            <td class="py-2 px-3 border-x border-light_gray ">
+                                                @aInfo.Department
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray ">
+                                                @aInfo.ApproverFlow
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray ">
+                                                @aInfo.ParentId
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray text-center">
+                                                @(aInfo.IsPrincipleApprover == true ? "Yes" : "No")
+                                            </td>
+                                            <td class="py-2 px-3 border-r border-light_gray text-center">
+                                                @if (aInfo.ParentId != 0)
+                                                {
+                                                    @(aInfo.IsActive == true ? "Yes" : "No")
+                                                    <label class="relative inline-flex cursor-pointer items-center">
+                                                        <input id="switch-3" type="checkbox" class="peer sr-only"
+                                       checked="@aInfo.IsActive" @onclick="@(() => CheckboxChanged(aInfo))" />
+                                                        <label for="switch-3" class="hidden"></label>
+                                                        <div class="peer h-4 w-11 rounded border bg-slate-200 after:absolute after:-top-1 after:left-0 after:h-6 after:w-6 after:rounded-md after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-300 peer-checked:after:translate-x-full peer-focus:ring-green-300">
+                                                        </div>
+                                                    </label>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+
+
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <br/>
+                }
+
+                //List<AppUserModel> departmentWiseUserList = AllUserList.Where(e => e.department.Trim() == aDepartment.Trim() & e.RoleName =="User").ToList();
+                //if (departmentWiseUserList.Count > 0)
+                //{
+                //    <h2>Department : @aDepartment </h2>
+                //    <div class="overflow-x-scroll scroll border-t border-x border-light_gray rounded-sm">
+                //        @*<button @onclick="(()=>ShowCrDetails(other))"
+                //                class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
+                //            <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+                //            Rearrange Approval Flow
+                //        </button>*@
+                //        <table class="w-full whitespace-nowrap overflow-x-scroll scroll text-black ">
+                //            <thead class="bg-[#FAFAFA]">
+                //                <tr class="border-b border-light_gray">
+                //                    <th class="border-r border-light_gray ">
+                //                        <button class="py-2 px-3 flex gap-2 items-center justify-center w-full hover:bg-active_bg duration-300 ease-in-out">
+                //                            Name
+                //                        </button>
+                //                    </th>
+                //                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                //                        L3Id
+                //                    </th>
+                //                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                //                        Department
+                //                    </th>
+                //                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                //                        Designation
+                //                    </th>
+                //                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                //                        Email
+                //                    </th>
+                //                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                //                        Phone Number
+                //                    </th>
+                //                    <th class="py-2 px-3 border-r border-light_gray text-start ">
+                //                        Role
+                //                    </th>
+                //                    @*<th class="py-2 px-3 text-start">
+                //                        Action
+                //                    </th>*@
+                //                    <!-- &nbsp; -->
+                //                    <!-- <th class="py-2 px-3 ">Edit - Delete</th> -->
+                //                </tr>
+                //            </thead>
+                //            <tbody class="bg-white text-start">
+                //                @{
+
+
+                //                    foreach (var aInfo in departmentWiseUserList)
+                //                    {
+                //                        <!-- 1st-High-Approved -->
+                //                        <tr class="border-b border-light_gray">
+                //                            <td class="py-2 px-3 border-r border-light_gray ">
+                //                                <span>@aInfo.fullName</span>(@aInfo.Id)
+                //                            </td>
+                //                            <td class="py-2 px-3 border-r border-light_gray ">
+                //                                @aInfo.Id
+                //                            </td>
+                //                            <td class="py-2 px-3 border-x border-light_gray ">
+                //                                @aInfo.department
+                //                            </td>
+                //                            <td class="py-2 px-3 border-r border-light_gray ">
+                //                                @aInfo.user_designation
+                //                            </td>
+                //                            <td class="py-2 px-3 border-r border-light_gray ">
+                //                                @aInfo.email
+                //                            </td>
+                //                            <td class="py-2 px-3 border-r border-light_gray text-center">
+                //                                @aInfo.phoneNumber
+                //                            </td>
+                //                            <td class="py-2 px-3 border-r border-light_gray text-center">
+                //                                @aInfo.RoleName                                          
+                //                            </td>
+                //                        </tr>
+                //                    }
+
+
+                //                }
+                //            </tbody>
+                //        </table>
+                //    </div>
+                //    <br />
+                //}
+
+            }
+
+
+
+
+        </section>
+
+    }
+
+</div>
+
+
+
+
+
+
+
+
+<!--Modal part-->
+<div class="relative z-[100] hidden" id="modal" aria-labelledby="modal-title" role="dialog" aria-modal="false">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all">
+                <div class="bg-white flex items-center md:justify-between p-5 rounded-sm relative flex-col md:flex-row gap-10 md:gap-1 justify-center">
+                    <!-- w-11/12 -->
+
+                    <div class="flex items-center gap-4 hover:text-my_blue duration-300 group md:w-1/2">
+                        <h2 class="line-clamp-1">
+                            CR <!--Default Approval Flow Inserty -->
+                        </h2>
+                    </div>
+
+                    <button type="button" class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
+                    @onclick="ModalClose">
+                        <img src="/assets/cross-icon.svg" alt="cross-icon" />
+                    </button>
+                </div>
+
+                <main class="flex gap-3 flex-col lg:flex-row">
+
+
+                    @if (showPart.ToLower() == "main")
+                    {
+                        <!-- FORM -->
+                        <div class="flex-1 lg:pr-2 md:px-5 px-1">
+                            <!-- check -->
+                            <!-- page-2=form-1 - start -->
+
+                            <EditForm class="py-5" id="insertMainApprover" Model="@InsertApprovalFlow" OnValidSubmit="PrimaryApprovalSaveReq">
+                                <!-- action="#" -->
+                                <!-- page-5=form - start -->
+                                <div class="">
+
+                                    <!-- 1st-textarea -->
+                                    <div class="">
+
+                                        <label for="MenuName" class="text-my_gray pt-3 font-semibold">
+                                            Approvar L3Id/Email
+                                        </label>
+
+                                        <input type="text" id="MenuName" name="MenuName" @bind="InsertApprovalFlow.ApproverEmpId" placeholder="Write Your MenuName"
+                                               class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+                                        <!-- value="Retail Reference Point (RRP) Management System" -->
+                                        <p class="text-rose-600"><ValidationMessage For="@(()=>InsertApprovalFlow.ApproverEmpId)" /></p>
+                                    </div>
+
+                                    <!-- 1st-textarea -->
+                                    <div class="">
+
+                                        <label for="MenuIcon" class="text-my_gray pt-3 font-semibold">
+                                            Parent Id
+                                        </label>
+
+                                        <input type="text" id="MenuIcon" name="MenuIcon" @bind="InsertApprovalFlow.ParentId" placeholder="Write Your MenuIcon"
+                                               class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+                                        <!-- value="Retail Reference Point (RRP) Management System" -->
+                                        <p class="text-rose-600"><ValidationMessage For="@(()=>InsertApprovalFlow.ParentId)" /></p>
+                                    </div>
+                                </div>
+                                <div class=" flex md:gap-3 gap-1 justify-end  mt-8">
+                                    <button type="submit"
+                                            class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+                                        <!-- check -->
+                                        Save
+
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    }
+                    else if(showPart.ToLower() == "other")
+                    {
+                        <EditForm style="padding-left:20px;" class="py-5" id="insertMainApprover" Model="@InsertApprovalFlow" OnValidSubmit="GeneralApprovalSaveReq">
+                            <!-- action="#" -->
+                            <!-- page-5=form - start -->
+                            <div class="">
+
+                                <!-- 1st-textarea -->
+                                <div class="">
+
+                                    <label for="MenuName" class="text-my_gray pt-3 font-semibold">
+                                        Department
+                                    </label>
+
+                                    <InputSelect ValueExpression="@(()=>InsertApprovalFlow.Department)" class="block w-full border px-2 py-1 rounded border-light_gray mt-2"
+                                                 Value="@InsertApprovalFlow.Department"
+                                                 ValueChanged="@((string value) => GetEmployee(value))">
+                                        <option value="">Choose a Department</option>
+                                        @foreach (var aDepartemnt in AllDepartment)
+                                        {
+                                            <option value="@aDepartemnt">@aDepartemnt</option>
+                                        }
+                                    </InputSelect>
+
+                                    <p class="text-rose-600"><ValidationMessage For="@(()=>InsertApprovalFlow.Department)" /></p>
+                                </div>
+
+                                <!-- 1st-textarea -->
+                                <div class="">
+
+                                    <label for="MenuName" class="text-my_gray pt-3 font-semibold">
+                                        Approvar L3Id/Email
+                                    </label>
+
+                                    <select id="countries" @bind="InsertApprovalFlow.ApproverEmpId" class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+                                        <option selected>Choose a Department</option>
+                                        @foreach (var aEmp in AllEmployee)
+                                        {
+                                            <option value="@aEmp">@aEmp</option>
+                                        }
+                                    </select>
+                                    <p class="text-rose-600"><ValidationMessage For="@(()=>InsertApprovalFlow.ApproverEmpId)" /></p>
+                                </div>
+
+                                <!-- 1st-textarea -->
+                                <div class="">
+
+                                    <label for="MenuIcon" class="text-my_gray pt-3 font-semibold">
+                                        Parent Id
+                                    </label>
+
+                                    <input type="text" id="MenuIcon" name="MenuIcon" @bind="InsertApprovalFlow.ParentId" placeholder="Write Your MenuIcon"
+                                           class="block w-full border px-2 py-1 rounded border-light_gray mt-2">
+                                    <!-- value="Retail Reference Point (RRP) Management System" -->
+                                    <p class="text-rose-600"><ValidationMessage For="@(()=>InsertApprovalFlow.ParentId)" /></p>
+                                </div>
+                            </div>
+                            <div class=" flex md:gap-3 gap-1 justify-end  mt-8">
+                                <button type="submit"
+                                        class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+                                    <!-- check -->
+                                    Save
+
+                                </button>
+                            </div>
+                        </EditForm>
+                    }                    
+                </main>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Modal part End-->
+}
+
+
+
+
+
+@code {
+    [Parameter]
+    public long CrId { get; set; } = 0;
+
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private ApprovalFlowRequestModel filter { get; set; }
+
+    string SearchText = string.Empty;
+    List<string> searchResult { get; set; }
+    private string? selectedUserId;
+    private string? selectedUserName;
+
+    IDictionary<string, bool> getPermission { get; set; }
+
+
+    List<string> AllDepartment { get; set; }
+    List<string> AllEmployee { get; set; }
+    //List<string> AllUserLists { get; set; }
+    string SelectedDepartment { get; set; }
+
+    List<CrDefaultApprovalFlow> PrimaryDefaultApprovalFlow { get; set; }
+    List<CrDefaultApprovalFlow> AllDefaultApprovalFlow { get; set; }
+
+    AddCrDefaultApprovalFlowReq InsertApprovalFlow { get; set; }
+
+    //AddUser AddUserReq { get; set; }
+    string SelectedRole { get; set; }
+    List<string> RoleNames { get; set; }
+
+    //List<UserListModel> departmentWiseUserList { get; set; }
+    //List<AppUserModel> AllUserList { get; set; }
+
+
+    string showPart = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        user = new UserModel();
+        filter = new ApprovalFlowRequestModel();
+        AllDepartment = new List<string>();
+        AllEmployee = new List<string>();
+        InsertApprovalFlow = new AddCrDefaultApprovalFlowReq();
+        //AddUserReq = new AddUser();
+        showPart = string.Empty;
+        RoleNames = new List<string>();
+        claimsPrincipal = (await authenticationStateTask).User;
+        //AllUserList = new List<AppUserModel>();
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+           
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if (permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+            await GetAllDepartment();
+            await GetAllDefaultApprovalFlow();
+            await GetAllRolesName();
+            //await GetDepartmentWiseEmployee();
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task GetAllDepartment()
+    {
+        _spinnerService.Show();
+        var response = await _crApprovalFlowSetupService.GetAllStringList("Account/AllDepartment");
+        if (response.StatusCode == 200)
+        {
+            AllDepartment = response.Data;
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetAllDepartment();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task GetAllEmployeeDepartmentWise(string setDepartment)
+    {
+        _spinnerService.Show();
+        var response = await _crApprovalFlowSetupService.GetAllStringList($@"Account/AllDepartmentWiseEmployee/{setDepartment}");
+        if (response.StatusCode == 200)
+        {
+            AllEmployee = response.Data;
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetAllEmployeeDepartmentWise(setDepartment);
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    //private async Task HandleInput(ChangeEventArgs e)
+    //{
+    //    _spinnerService.Show();
+    //    string filter = e.Value?.ToString();
+    //    if (filter?.Length > 2)
+    //    {
+    //        searchResult = await _menuPermissionService.GetAllUsersBySearch("Account/SearchEmployee?text=" + filter);
+    //    }
+    //    else
+    //    {
+    //        searchResult = null;
+    //        selectedUserName = selectedUserId = null;
+    //    }
+    //    _spinnerService.Hide();
+
+    //}
+    //private async Task SelectCustomer(string text)
+    //{
+    //    var getData = text.Split("-").Select(x => x.Trim()).ToList();
+    //    selectedUserId = getData[1];
+    //    SearchText = getData[0];
+    //    //SelectedRole = getData[3];
+    //    searchResult = null;
+    //}
+
+    private async Task GetAllRolesName()
+    {
+        _spinnerService.Show();
+        var response = await _menuPermissionService.GetAllRolesName("MenuSetupAndPermission/GetAllRoles");
+        if (response.StatusCode == 200)
+        {
+            RoleNames = response.Data;
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetAllRolesName();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+    //private async Task GetAllUser(string user)
+    //{
+    //    _spinnerService.Show();
+    //    var response = await _crApprovalFlowSetupService.GetAllStringList($@"Account/AllDepartmentWiseEmployee/{setDepartment}");
+    //    if (response.StatusCode == 200)
+    //    {
+    //        AllEmployee = response.Data;
+    //    }
+    //    else if (response.StatusCode == 401)
+    //    {
+    //        var newRes = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        var res = await showMessage(newRes);
+    //        if (res.StatusCode == 200)
+    //        {
+    //            await GetAllEmployeeDepartmentWise(setDepartment);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var newResponse = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        await showMessage(newResponse);
+    //    }
+    //    _spinnerService.Hide();
+    //}
+
+    private async Task GetAllDefaultApprovalFlow()
+    {
+        _spinnerService.Show();
+        var response = await _crApprovalFlowSetupService.GetAllDefaultApprovalFlow($@"CrDefaultApprovalFlow/GetAllDefaultApprovalFlow");
+        if (response.StatusCode == 200)
+        {
+            PrimaryDefaultApprovalFlow = response.Data.FindAll(x => x.IsPrincipleApprover == true).ToList();
+            AllDefaultApprovalFlow = response.Data.FindAll(x => x.IsPrincipleApprover == false).ToList();
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetAllDefaultApprovalFlow();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task GetEmployee(string e)
+    {
+        if (string.IsNullOrEmpty(e))
+        {
+            toastService.ShowError("Please Select a Department");
+            return;
+        }
+        string department = e;
+        AllEmployee = new List<string>();
+        await GetAllEmployeeDepartmentWise(department);
+        InsertApprovalFlow.Department = department;
+
+    }
+
+    //private async Task GetAllEmployee(string user)
+    //{
+    //    if (string.IsNullOrEmpty(user))
+    //    {
+    //        toastService.ShowError("Please Select a User");
+    //        return;
+    //    }
+    //    //string department = user;
+    //    AllUserLists = new List<string>();
+    //    await GetAllUser(user);
+    //    AddUserReq.UserId = user;
+
+    //}
+
+    private async Task CheckboxChanged(CrDefaultApprovalFlow ainfo)
+    {
+        _spinnerService.Show();
+        if(ainfo.IsActive == true)
+        {
+            ainfo.IsActive = false;
+        }
+        else
+        {
+            ainfo.IsActive = true;
+        }
+        var response = await _crApprovalFlowSetupService.DefaultApproverActiveInActive($@"CrDefaultApprovalFlow/DefaultApproverActiveInactive", ainfo);
+        if (response.StatusCode == 200)
+        {
+            toastService.ShowSuccess(response.Message);
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GetAllDefaultApprovalFlow();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task ShowCrDetails(string option)
+    {
+        AllEmployee = new List<string>();
+        InsertApprovalFlow = new AddCrDefaultApprovalFlowReq();
+        showPart = option;
+        await js.InvokeVoidAsync("modalOpen");
+    }
+
+    private async Task ModalClose()
+    {
+        await js.InvokeVoidAsync("modalClose");
+    }
+
+    private async Task PrimaryApprovalSaveReq()
+    {
+        _spinnerService.Show();
+        InsertApprovalFlow.Department = "INI";
+        var responseForUpdate = await _crApprovalFlowSetupService.InsertDefaultApprovalFlow($@"CrDefaultApprovalFlow/AddPrincipleDefaultApprovalFlowFor", InsertApprovalFlow);
+
+        if (responseForUpdate.StatusCode == 200)
+        {
+            await GetAllDefaultApprovalFlow();
+            toastService.ShowSuccess(responseForUpdate.Message);
+            await ModalClose();
+        }
+        else if (responseForUpdate.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = responseForUpdate.Status,
+                    StatusCode = responseForUpdate.StatusCode,
+                    Message = responseForUpdate.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await PrimaryApprovalSaveReq();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = responseForUpdate.Status,
+                    StatusCode = responseForUpdate.StatusCode,
+                    Message = responseForUpdate.Message
+                };
+            await showMessage(newResponse);
+        }
+        _spinnerService.Hide();
+    }
+
+    private async Task GeneralApprovalSaveReq()
+    {
+        _spinnerService.Show();
+        var aList = InsertApprovalFlow.ApproverEmpId.Split("-").Select(x => x.Trim()).ToList();
+        InsertApprovalFlow.ApproverEmpId = aList[0];
+        var responseForUpdate = await _crApprovalFlowSetupService.InsertDefaultApprovalFlow($@"CrDefaultApprovalFlow/AddCrDefaultApprovalFlow", InsertApprovalFlow);
+
+        if (responseForUpdate.StatusCode == 200)
+        {
+            await GetAllDefaultApprovalFlow();
+            toastService.ShowSuccess(responseForUpdate.Message);
+            await ModalClose();
+        }
+        else if (responseForUpdate.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = responseForUpdate.Status,
+                    StatusCode = responseForUpdate.StatusCode,
+                    Message = responseForUpdate.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await GeneralApprovalSaveReq();
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = responseForUpdate.Status,
+                    StatusCode = responseForUpdate.StatusCode,
+                    Message = responseForUpdate.Message
+                };
+            await showMessage(newResponse);
+        }
+        InsertApprovalFlow = new AddCrDefaultApprovalFlowReq();
+        _spinnerService.Hide();
+    }
+
+    //private async Task AddUserSaveReq()
+    //{
+    //    _spinnerService.Show();
+    //    if (string.IsNullOrEmpty(SelectedRole))
+    //    {
+    //        _spinnerService.Hide();
+    //        toastService.ShowError("You must be select a role");
+    //        return;
+    //    }
+    //    var filterData = new AddUser()
+    //        {
+    //            RoleName = SelectedRole,
+    //            L3Id = selectedUserId
+    //        };
+
+    //    var response = await _crApprovalFlowSetupService.CRAddEmployee($@"Account/PreAssignForCR", filterData);
+    //    if (response.StatusCode == 200)
+    //    {
+    //        toastService.ShowSuccess(response.Message);
+    //        await ModalClose();
+    //    }
+    //    else if (response.StatusCode == 401)
+    //    {
+    //        var newRes = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        var res = await showMessage(newRes);
+    //        if (res.StatusCode == 200)
+    //        {
+    //            await AddUserSaveReq();
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var newResponse = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        await showMessage(newResponse);
+    //    }
+    //    //InsertApprovalFlow = new AddCrDefaultApprovalFlowReq();
+    //    AddUserReq = new AddUser();
+    //    _spinnerService.Hide();
+    //}
+
+    //private async Task GetDepartmentWiseEmployee()
+    //{
+    //    _spinnerService.Show();
+    //    //var response = await _crApprovalFlowSetupService.GetEmployeeList($@"Account/DepartmentWiseEmployee/{setDepartment}");
+    //    var response = await _crApprovalFlowSetupService.GetEmployeeList($@"Account/AllEmployee");
+    //    if (response.StatusCode == 200)
+    //    {
+    //        AllUserList = response.Data.ToList();
+    //    }
+    //    else if (response.StatusCode == 401)
+    //    {
+    //        var newRes = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        var res = await showMessage(newRes);
+    //        if (res.StatusCode == 200)
+    //        {
+    //            await GetDepartmentWiseEmployee();
+    //        }
+    //    }
+    //    else
+    //    {
+    //        var newResponse = new ApiResponse()
+    //            {
+    //                Status = response.Status,
+    //                StatusCode = response.StatusCode,
+    //                Message = response.Message
+    //            };
+    //        await showMessage(newResponse);
+    //    }
+    //    _spinnerService.Hide();
+    //}
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess(apiResponse.Message);
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            toastService.ShowError(apiResponse.Message);
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+
+
+}

@@ -1,0 +1,63 @@
+﻿@using Cr.UI.Data.CrStatus;
+
+@if(StatusWiseTotalCrList != null){
+    <!-- filters -->
+    <div class="w-[60%] p-2 mr-2 flex flex-wrap md:flex-nowrap md:whitespace-nowrap md:overflow-scroll scroll gap-2">
+        <!-- whitespace-nowrap -->
+        <!-- All -->
+        @foreach (var aInfo in StatusWiseTotalCrList)
+        {
+            var setClass = string.Empty;
+            if (AddClass == aInfo.Status)
+            {
+                setClass = "filter-active hover:opacity-75";
+            }
+            else
+            {
+                setClass = "hover:text-my_blue hover:border-my_blue";
+            }
+            <!-- Submitted -->
+            <button type="button" @onclick="(()=> getStatusWiseCrList(aInfo.Status))"
+                    class="@setClass border border-light_gray rounded-full py-1 px-3 duration-100">
+                @aInfo.StatusDisplayName (<span>@aInfo.Total</span>)
+            </button>
+        }
+    </div>
+
+
+    @* <div class="w-9/12 p-2 mr-2 flex flex-wrap md:flex-nowrap md:whitespace-nowrap md:overflow-scroll scroll gap-2">
+        <!-- whitespace-nowrap -->
+        <!-- All -->
+        @foreach (var aInfo in StatusWiseTotalCrList)
+        {
+            <!-- Submitted -->
+            <button type="button" @onclick="(()=> getStatusWiseCrList(aInfo.Status))"
+                    class="border border-light_gray rounded-full py-1 px-3 hover:text-my_blue hover:border-my_blue duration-300">
+                @aInfo.Status (<span>@aInfo.Total</span>)
+            </button>
+        }
+    </div> *@
+}
+
+
+
+@code {
+
+    [Parameter] public List<StatusWiseTotalCrResponse> StatusWiseTotalCrList { get; set; }
+
+    [Parameter] public EventCallback<string> OnClickCrStatus { get; set; }
+
+    private string AddClass { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        AddClass = "All";
+    }
+
+    private async Task getStatusWiseCrList(string status)
+    {
+        AddClass = status;
+        OnClickCrStatus.InvokeAsync(status);
+    }
+}

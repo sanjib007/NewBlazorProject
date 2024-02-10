@@ -1,0 +1,178 @@
+﻿@page "/counter"
+@using ChartJs.Blazor.LineChart;
+@using Microsoft.AspNetCore.SignalR.Client;
+@using MicrotikBlazorWA.Socket;
+@inject ISocketService Repo
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+
+<br/>
+
+
+<div style="width:100%; height:300px !important; margin-top:100px;">
+    @if (_config != null)
+    {
+        <Chart Config="_config" @ref="_chart"></Chart>
+    }
+
+</div>
+<br />
+
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    private const int InitalCount = 7;
+    private LineConfig _config;
+    private Chart _chart;
+
+
+    private IDataset<int> dataset1 { get; set; }
+    private IDataset<int> dataset2 { get; set; }
+
+    private List<int> RX { get; set; } = new List<int>() { 1, 3, 4, 5 };
+    private List<int> TX { get; set; } = new List<int>() { 10, 7, 8, 9 };
+
+    private GetUserInfoFromMikrotikRequestModel Model { get; set; }
+
+    private HubConnection _hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine($"RX: {5}, TX: {8}, TimeLavel: {00:00:00}");
+        //_config = new LineConfig
+        //    {
+        //        Options = new LineOptions
+        //        {
+        //            Responsive = true,
+        //            Title = new OptionsTitle
+        //            {
+        //                Display = true,
+        //                Text = "Live Mikrotik Router Chart"
+        //            },
+        //            Tooltips = new Tooltips
+        //            {
+        //                Mode = InteractionMode.Nearest,
+        //                Intersect = true
+        //            },
+        //            Hover = new Hover
+        //            {
+        //                Mode = InteractionMode.Nearest,
+        //                Intersect = true
+        //            },
+        //            Scales = new Scales
+        //            {
+        //                XAxes = new List<CartesianAxis>
+        //            {
+        //                new CategoryAxis
+        //                {
+        //                    ScaleLabel = new ScaleLabel
+        //                    {
+        //                        LabelString = "Month"
+        //                    }
+        //                }
+        //            },
+        //                YAxes = new List<CartesianAxis>
+        //            {
+        //                new LinearCartesianAxis
+        //                {
+        //                    ScaleLabel = new ScaleLabel
+        //                    {
+        //                        LabelString = "Value"
+        //                    }
+        //                }
+        //            }
+        //            }
+        //        }
+        //    };
+
+        //dataset1 = new LineDataset<int>(RX)
+        //    {
+        //        Label = "RX Value",
+        //        BackgroundColor = "#f7d7d7",
+        //        BorderColor = "Red",
+        //        //Fill = FillingMode.Disabled
+        //    };
+
+        //dataset2 = new LineDataset<int>(TX)
+        //    {
+        //        Label = "TX Value",
+        //        BackgroundColor = "#ddd7f7",
+        //        BorderColor = "Blue",
+        //        //Fill = FillingMode.Disabled
+        //    };
+
+        //_config.Data.Labels.Add("00:00:00");
+        //_config.Data.Labels.Add("00:00:01");
+        //_config.Data.Labels.Add("00:00:02");
+        //_config.Data.Labels.Add("00:00:03");
+        //_config.Data.Labels.Add("00:00:04");
+        //_config.Data.Datasets.Add(dataset1);
+        //_config.Data.Datasets.Add(dataset2);
+
+
+
+        Model = new GetUserInfoFromMikrotikRequestModel();
+        Model.RouterIp = "203.76.99.60";
+        Model.UserName = "innovation";
+        Model.Password = "I&I@123";
+        Model.CustomerIp = "101349";
+        Model.CallerId = "Sanjib";
+
+        await StartHubConnection();
+
+        await Repo.CallChartEndpoint("Socket/CallSocket", Model);
+
+        await AddTransferChartDataListener();
+
+
+    }
+
+
+    private async Task setData(int rx, int tx, string timeLavel)
+    {
+        dataset1.Add(rx);
+        dataset2.Add(tx);
+        _config.Data.Labels.Add(timeLavel);
+        _config.Data.Datasets.Add(dataset1);
+        _config.Data.Datasets.Add(dataset2);
+    }
+
+
+
+
+    private async Task StartHubConnection()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl("https://localhost:7219/Socket/CallSocket")
+            .Build();
+        await _hubConnection.StartAsync();
+        if (_hubConnection.State == HubConnectionState.Connected)
+            Console.WriteLine("connection started");
+
+
+    }
+    private async Task AddTransferChartDataListener()
+    {
+        _hubConnection.On<List<ChartDto>>("TransferChartData", async (data) =>
+        {
+            //await setData(data.RxValue, data.TxValue, data.TimeLabel);
+            foreach(var ainfo in data)
+            {
+                Console.WriteLine($"RX: {ainfo.RxValue}, TX: {ainfo.TxValue}, TimeLavel: {ainfo.TimeLabel}");
+            }
+        });
+    }
+}

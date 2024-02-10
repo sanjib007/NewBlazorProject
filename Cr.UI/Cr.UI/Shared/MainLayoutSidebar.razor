@@ -1,0 +1,292 @@
+﻿@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Services.Interface;
+@using Cr.UI.Data.StateManagement;
+@using Cr.UI.Data.Permission;
+@using Newtonsoft.Json;
+
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject IJSRuntime js
+@inject IChangeRequirementService _changeRequirementService;
+@inject IMenuAndPermissionService _menuPermissionService;
+@inject AppState appState
+@implements IDisposable
+
+
+<aside class="self-stretch bg-white whitespace-nowrap pt-16 min-h-screen @menuClass" id="cus-collapse">
+    <!-- cus-collapse -->
+    <!-- md:w-[40px] w-[80px] -->
+    <!-- w-[11.25rem] -->
+    <!-- md:w-[13.2rem] -->
+    <!-- lg:w-[13.2rem] -->
+
+    <div class=" top-16 sticky min-h-screen flex flex-col justify-between cus_drawer duration-300 ease-in-out cus-width w-fit">
+
+        <!-- w-[11.25rem] -->
+        <!-- md:w-[13.2rem] -->
+        <!-- lg:w-[13.2rem] -->
+        <!-- collapse-end -->
+
+        <ul class="text-db_text_color">
+            <li class="" id="sub_menu">
+                <ul>
+
+                    <li class="flex flex-col sub_extra overflow-hidden duration-300 ease-in-out ">
+                        @if (menuList != null)
+                        {
+                            @foreach (var aMenu in menuList.OrderBy(x=> x.MenuSequence))
+                            {
+                                <a href="@aMenu.MenuPath"
+                                   class="border-b border-main_bg lg:gap-5 gap-2 lg:p-4 p-3 ease-in-out duration-300 flex items-center group sub_list_item w-full"
+                                   title="@aMenu.MenuName">
+
+                                    <img src="@aMenu.MenuIcon" alt="dash-icon" class="cus-filter vs">
+                                    <!-- invisible group-hover:visible -->
+
+                                    <p class="aside_extra">
+                                        @aMenu.MenuName
+                                        @if (aMenu.MenuPath.ToLower() == "/pendingcrlist" && @appState.TotalPending > 0)
+                                        {
+                                            <span class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">@appState.TotalPending</span>
+                                        }
+                                    </p>
+
+                                </a>
+                            }
+                        }
+                        
+                    </li>
+
+                </ul>
+
+            </li>
+
+        </ul>
+
+        <ul class="sticky bottom-0 z-50 bg-white cus_collapse ">
+
+            <li class="border-y border-main_bg group hover:bg-active_bg ease-in-out duration-300 ">
+
+                <button class="w-full lg:p-4 p-3" @onclick="ChangeMenuClass">
+                    <img src=" assets/MenuFold.svg" alt="MenuFold-icon" class="cus-filter">
+                </button>
+
+            </li>
+
+        </ul>
+
+    </div>
+
+</aside>
+
+
+
+@code {
+
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private string menuClass { get; set; }
+
+
+    private PaginationModel pagination = new PaginationModel();
+    public int PageSize { get; set; } = 10;
+    public int TotalItems { get; set; }
+    public int CurrentPage { get; set; }
+    public int TotalPages { get; set; }
+    private ChangeRequestListRequestModel filter { get; set; }
+    private List<ChangeRequestModel> changeReqList { get; set; }
+    private ChangeRequestModel aCrInfromation { get; set; }
+    protected string SelectData { get; set; }
+    private string CurrentPartActive { get; set; }
+    private string IsActiveCss { get; set; }
+    public List<CrApprovalFlow> ApprovalData { get; set; }
+    private string userRole { get; set; } = "USER";
+    private string AddCss { get; set; } = "hover:text-my_blue hover:bg-active_bg";
+    private string path { get; set; }
+    ApiResponse<PaginationModel<List<ChangeRequestModel>>> response { get; set; }
+
+    List<MenuSetupAndPermissionViewModel> menuResponse { get; set; }
+    List<MenuSetupAndPermissionViewModel> menuList { get; set; }
+
+    IDictionary<string, bool> getPermission { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        menuClass = string.Empty;
+        filter = new ChangeRequestListRequestModel();
+        aCrInfromation = new ChangeRequestModel();
+        SelectData = string.Empty;
+        CurrentPartActive = "Current";
+        IsActiveCss = "group-hover:bg-active_bg";
+        ApprovalData = new List<CrApprovalFlow>();       
+
+
+        user = new UserModel();
+
+        claimsPrincipal = (await authenticationStateTask).User;
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            //NavigationManager.NavigateTo("/");
+        }
+        else
+        {            
+
+            appState.OnChange += StateHasChanged;
+            userRole = await localStorage.GetItemAsync<string>("roles");
+            var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+            var path = uri.AbsolutePath;
+            if (uri.AbsolutePath != "/")
+            {
+                AddCss = "text-my_blue bg-active_bg";
+            }
+            response = new ApiResponse<PaginationModel<List<ChangeRequestModel>>>();
+
+            var getMenuStr = await localStorage.GetItemAsync<string>("menuListOnly");
+            if (!string.IsNullOrEmpty(getMenuStr))
+            {
+                menuList = JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(getMenuStr);
+            }
+
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+            
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if (permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+            
+
+            if (getPermission["changerequest/pendingchangerequestlist"])
+                await LoadData(CurrentPage + 1, PageSize);
+
+        }
+    }
+
+    public void Dispose()
+    {
+        appState.OnChange -= StateHasChanged;
+    }    
+
+    private async Task LoadData(int pageNumber, int pageSize)
+    {
+        filter.PageNumber = pageNumber;
+        filter.PageSize = pageSize;
+        response = await _changeRequirementService.GetAllCrList("ChangeRequest/PendingChangeRequestList", filter);
+        if (response.StatusCode == 200)
+        {
+            changeReqList = response.Data.item;
+
+            await appState.SetPendingCrList(response);            
+
+            TotalItems = response.Data.totalRecords;
+ 
+        }
+        else if (response.StatusCode == 401)
+        {
+            var newRes = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            var res = await showMessage(newRes);
+            if (res.StatusCode == 200)
+            {
+                await LoadData(CurrentPage, PageSize);
+            }
+        }
+        else
+        {
+            var newResponse = new ApiResponse()
+                {
+                    Status = response.Status,
+                    StatusCode = response.StatusCode,
+                    Message = response.Message
+                };
+            await showMessage(newResponse);
+        }
+    }
+
+
+    private async Task ChangeMenuClass()
+    {
+        if (string.IsNullOrEmpty(menuClass))
+        {
+            menuClass = "cus-collapse";
+        }
+        else
+        {
+            menuClass = string.Empty; 
+        }
+    }
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess(apiResponse.Message);
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            toastService.ShowError(apiResponse.Message);
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+}

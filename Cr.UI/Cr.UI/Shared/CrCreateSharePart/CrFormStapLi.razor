@@ -1,0 +1,212 @@
+﻿@using Cr.UI.Data.ChangeRequirementModel;
+@using System.Security.Claims;
+@using Cr.UI.Data;
+@using Cr.UI.Services.Interface;
+@using Cr.UI.Data.StateManagement;
+
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IGenericService<TempChangeRequestedInfo> uncompleteCrGenericService
+@inject IJSRuntime js
+
+@inject AppState AppState
+@implements IDisposable
+
+
+<ul class="pl-2 py-7 sticky top-16">
+    
+    @if (@AppState.SetSteps != null)
+    {
+        @foreach (var aStap in @AppState.SetSteps)
+        {
+            var route = aStap.IsCompleted ? aStap.RouteName : "#";
+            <li class="border-y border-main_bg">
+                @if(route == "#")
+                {
+                    <div
+                       class="flex items-center gap-2 p-2 hover:bg-active_bg ease-in-out duration-300">
+                        <div class="@aStap.StapClass">
+                            @if (aStap.IsCompleted && !string.IsNullOrEmpty(aStap.StapImage))
+                            {
+                                <img src="@aStap.StapImage" alt="Correct-Sign-Icon">
+                            }
+                            else
+                            {
+                                @aStap.StapNumber
+                            }
+                        </div>
+                        <p>@aStap.StapName</p>
+                    </div>
+                }
+                else
+                {
+                    <NavLink href="@route" Match="NavLinkMatch.All"
+                       class="flex items-center gap-2 p-2 hover:bg-active_bg ease-in-out duration-300">
+                        <div class="@aStap.StapClass">
+                            @if (aStap.IsCompleted && !string.IsNullOrEmpty(aStap.StapImage))
+                            {
+                                <img src="@aStap.StapImage" alt="Correct-Sign-Icon">
+                            }
+                            else
+                            {
+                                @aStap.StapNumber
+                            }
+                        </div>
+                        <p>@aStap.StapName</p>
+                    </NavLink>
+                }
+            </li>
+        }
+
+    }
+    else
+    {
+        <p>No Data Found</p>
+    }
+
+
+</ul>
+
+@code {
+    public List<CrCreateStepsModel> Data { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AppState.OnChange += StateHasChanged;
+        await setOption();        
+    }
+
+    public void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged;
+    }
+
+    public async Task<object> setOption()
+    {
+        var defualtCrSteps = await getSteps();
+        if(defualtCrSteps.Count > 0)
+        {
+            await InvokeAsync(async () =>
+            {
+                await AppState.SetDataFunction(defualtCrSteps);
+            });
+            
+        }
+
+        var InactiveClass = "border border-deep_blue h-9 w-9 text-deep_blue rounded-full flex justify-center items-center";
+        var ActiveClass = "bg-deep_blue h-9 w-9 text-white rounded-full flex justify-center items-center";
+        var CompleteClass = "bg-my_green h-9 w-9 text-white rounded-full flex justify-center items-center";
+        var StepImage = "assets/tik.svg";
+
+        await localStorage.SetItemAsync<string>("InactiveClass", InactiveClass);
+        await localStorage.SetItemAsync<string>("ActiveClass", ActiveClass);
+        await localStorage.SetItemAsync<string>("CompleteClass", CompleteClass);
+        await localStorage.SetItemAsync<string>("StepImage", StepImage);
+
+        var data = await uncompleteCrGenericService.GetOnlyAsync("TempChangeRequest/UncompleteChangeRequest");
+        if (data.Data != null)
+        {
+            await localStorage.SetItemAsync<TempChangeRequestedInfo>("uncompleteCr", data.Data);
+            if (string.IsNullOrEmpty(data.Data.StepNo))
+            {
+                await localStorage.SetItemAsync<List<CrCreateStepsModel>>("CrSteps", defualtCrSteps);
+            }
+            else
+            {
+                var steps = data.Data.StepNo.Split(",");
+                foreach (var aStep in steps)
+                {
+                    var aInfo = new CrCreateStepsModel();
+                    aInfo = defualtCrSteps.FirstOrDefault(x => x.StapNumber == Convert.ToInt16(aStep));
+                    aInfo.StapClass = CompleteClass;
+                    aInfo.StapImage = StepImage;
+                    aInfo.IsCompleted = true;
+
+                    if (aStep == steps.Last())
+                    {
+                        aInfo = defualtCrSteps.FirstOrDefault(x => x.StapNumber == (Convert.ToInt16(aStep) + 1));
+                        aInfo.StapClass = ActiveClass;
+                        aInfo.StapImage = null;
+                        aInfo.IsCompleted = true;
+
+                        NavigationManager.NavigateTo("/" + aInfo.RouteName);
+                    }
+                }
+                await localStorage.SetItemAsync<List<CrCreateStepsModel>>("CrSteps", defualtCrSteps);
+                Data = defualtCrSteps;
+                if(Data.Count > 0)
+                {
+                    await InvokeAsync(async () =>
+                    {
+                        await AppState.SetDataFunction(Data);
+                    });
+                    
+                }
+                
+            }
+        }
+        else
+        {
+            await localStorage.SetItemAsync<List<CrCreateStepsModel>>("CrSteps", defualtCrSteps);
+            await localStorage.RemoveItemAsync("uncompleteCr");
+        }
+        
+        return new object();
+    }
+
+    public async Task<List<CrCreateStepsModel>> getSteps()
+    {
+        Data = new List<CrCreateStepsModel>()
+        {
+            new CrCreateStepsModel()
+            {
+                StapNumber = 1,
+                StapClass = "bg-deep_blue h-9 w-9 text-white rounded-full flex justify-center items-center",
+                StapImage = null,
+                StapName = "Change Request",
+                IsCompleted = true,
+                RouteName = "StepOne"
+            },
+            new CrCreateStepsModel()
+            {
+                StapNumber = 2,
+                StapClass = "border border-deep_blue h-9 w-9 text-deep_blue rounded-full flex justify-center items-center",
+                StapImage = null,
+                StapName = "Existing Status & Change Impact",
+                IsCompleted = false,
+                RouteName = "StepTwo"
+            },
+            new CrCreateStepsModel()
+            {
+                StapNumber = 3,
+                StapClass = "border border-deep_blue h-9 w-9 text-deep_blue rounded-full flex justify-center items-center",
+                StapImage = null,
+                StapName = "Reference & Attachments",
+                IsCompleted = false,
+                RouteName = "StepThree"
+            },
+            new CrCreateStepsModel()
+            {
+                StapNumber = 4,
+                StapClass = "border border-deep_blue h-9 w-9 text-deep_blue rounded-full flex justify-center items-center",
+                StapImage = null,
+                StapName = "Risk Factor & Alternatives",
+                IsCompleted = false,
+                RouteName = "StepFour"
+            },
+            new CrCreateStepsModel()
+            {
+                StapNumber = 5,
+                StapClass = "border border-deep_blue h-9 w-9 text-deep_blue rounded-full flex justify-center items-center",
+                StapImage = null,
+                StapName = "Review & Confirm",
+                IsCompleted = false,
+                RouteName = "ReviewAndConfirm"
+            },
+        };
+
+        return Data;
+    }
+}

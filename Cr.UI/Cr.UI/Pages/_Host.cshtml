@@ -1,0 +1,219 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@namespace Cr.UI.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+    
+
+   @* <link rel="icon" type="image/png" href="/assets/favicon.icon"/>*@
+    <link rel="shortcut icon" href="assets/link3.svg" type="image/x-icon">
+    <link href="Cr.UI.styles.css" rel="stylesheet" />
+    <link href="~/css/app.min.css" rel="stylesheet" /> 
+
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    <style>
+        .truncate {
+            width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .spinner-container {
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            z-index: 999;
+            top: 50%;
+            left: 50%;
+        }
+    </style>
+    <!-- external-css -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .cus_shadow {
+            transition: all 300ms ease-in-out;
+        }
+
+            .cus_shadow:hover {
+                box-shadow: 2px 1px 5px rgba(0, 0, 0, 0.2);
+            }
+
+        /* .cus-filter,
+                                        .cus-sub-filter,
+                                        .cus-white-filter {
+                                            transition: all 300ms ease-in-out;
+                                        } */
+
+        .icon-cus-filter {
+            filter: invert(65%) sepia(95%) saturate(7499%) hue-rotate(209deg) brightness(107%) contrast(108%);
+        }
+
+        .group:hover .cus-filter,
+        .sub:hover .cus-sub-filter {
+            filter: invert(65%) sepia(95%) saturate(7499%) hue-rotate(209deg) brightness(107%) contrast(108%);
+        }
+
+        .group:hover .cus-white-filter {
+            filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(47deg) brightness(101%) contrast(101%);
+        }
+
+        .group:hover .cus-red-filter {
+            filter: invert(27%) sepia(92%) saturate(4800%) hue-rotate(352deg) brightness(95%) contrast(142%);
+        }
+
+        .cus-white-filter {
+            filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(47deg) brightness(101%) contrast(101%);
+        }
+
+        .cus-black-filter {
+            filter: invert(100%) sepia(100%) saturate(13%) hue-rotate(208deg) brightness(108%) contrast(103%);
+        }
+
+        /* .box {
+                                            height: 150px;
+                                            width: 300px;
+                                            margin: 20px;
+                                            border: 1px solid #ccc;
+                                        } */
+
+        .top {
+            box-shadow: 0 -5px 8px -5px #8f8f8f;
+        }
+
+        /* with - js */
+
+        .active-side-sub-menu {
+            background-color: '#f5f6fa' !important;
+            color: '#006FFF' !important;
+        }
+
+            .active-side-sub-menu > .cus-filter,
+            .active-side-sub-menu > .cus-sub-filter {
+                filter: invert(65%) sepia(95%) saturate(7499%) hue-rotate(209deg) brightness(107%) contrast(108%);
+            }
+
+        .active-side-menu {
+            background-color: '#f5f6fa' !important;
+            color: '#006FFF' !important;
+        }
+
+            .active-side-menu > .cus-filter,
+            .active-side-menu > .cus-sub-filter {
+                filter: invert(65%) sepia(95%) saturate(7499%) hue-rotate(209deg) brightness(107%) contrast(108%);
+            }
+
+        /* more active css */
+        .active-button {
+            border-color: #006fff !important;
+            color: #006fff !important;
+        }
+
+        /* disable css */
+        .disable {
+            color: #d9d9d9 !important;
+        }
+
+        .disable-bg-button {
+            color: #8f8f8f !important;
+            border-color: #8f8f8f !important;
+            background-color: #d9d9d9 !important;
+        }
+
+        .active-aside {
+            background-color: #006fff !important;
+        }
+
+        .middle-box-shadow {
+            box-shadow: 2px 3px 8px 1px rgba(0, 0, 0, 0.25);
+        }
+
+        /* with - js */
+
+        .scroll::-webkit-scrollbar {
+            height: 7px;
+            width: 5px;
+        }
+
+        .scroll::-webkit-scrollbar-thumb {
+            border-radius: 2px;
+            background: #d9d9d9;
+            /* background: #F3F4F6; */
+        }
+
+        /* .scroll::-webkit-scrollbar-track {
+                                            background: #f5f6fa;
+                                        } */
+
+        /* input-number */
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type='number'] {
+            -moz-appearance: textfield;
+        }
+
+        /* collapse-start */
+
+        .cus-collapse {
+            width: 45px !important;
+            .aside_extra
+
+        {
+            display: none;
+        }
+
+        .sub_list_item,
+        .list_item {
+            margin-inline: auto;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cus-width {
+            width: auto;
+        }
+
+        }
+        .pointer {cursor: pointer;}
+        /* collapse-end */
+    </style>
+
+</head>
+<body style="background-color:#f0f2f8;" class="relative">
+    <component type="typeof(App)" render-mode="Server" />
+
+    @*<div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>*@
+
+    <script src="js/site.js"></script>
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/Microsoft.AspNetCore.Components.Web.Extensions/headManager.js"></script>
+    
+
+</body>
+</html>

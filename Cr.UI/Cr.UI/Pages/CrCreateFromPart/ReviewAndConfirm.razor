@@ -1,0 +1,528 @@
+﻿@page "/ReviewAndConfirm"
+
+@using Blazored.Toast.Services;
+@using Cr.UI.Data;
+@using System.Security.Claims;
+@using Cr.UI.Data.ChangeRequirementModel;
+@using Cr.UI.Data.Permission;
+@using Cr.UI.Services.Interface;
+@using Newtonsoft.Json;
+@using Cr.UI.Data.StateManagement;
+@inject SpinnerState _spinnerService;
+@inject NavigationManager NavigationManager
+@inject IUserService userService
+@inject IChangeRequirementService _changeRequirmentService;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IToastService toastService;
+@inject AuthenticationStateProvider authenticationStateProvider;
+@inject IMenuAndPermissionService _menuPermissionService;
+
+@if (getPermission == null)
+{
+
+}
+else if (getPermission.Count == 0)
+{
+
+}
+else
+{
+    <!-- FORM -->
+    <div class="flex-1 lg:pr-2 md:px-5 px-1">
+
+        <EditForm class="py-5" id="step-five-form-btn" Model="@stepFiveRequest">
+            <!-- action="#" -->
+            <!-- page-4=form-1 - start -->
+            <div>
+                <h2 class="font-semibold">
+                    Change Request
+                </h2>
+
+                <div class="py-5">
+                    <label for="subject" class="text-my_gray font-semibold">Subject : </label>
+                    <textarea name="Subject" id="Subject" @bind="stepFiveRequest.Subject" cols="30" rows="5"
+                              placeholder="Subject here" readonly
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                    <!-- value="Retail Reference Point (RRP) Management System" -->
+                </div>
+
+                <fieldset>
+                    <legend class="text-my_gray font-semibold">
+                        Change Request for (Check one that apply)
+                    </legend>
+
+                    <div class="flex gap-5">
+                        <Cr.UI.Shared.CrCreateSharePart.CrRedioComponent Data="@RedioOptions1" Data1="@RedioOptions2"
+                                                                         TextField="@((item)=>item)"
+                                                                         ValueField="@((item)=>item)"
+                                                                         SelectedValue="@SelectData"
+                                                                         setValueFun="()=>{}" />
+                    </div>
+
+                </fieldset>
+            </div>
+            <!-- page-4=form-1 - end -->
+            @if (fileNames != null)
+            {
+                <div class="">
+
+                    <!-- 1st-textarea -->
+                    <div class="">
+
+                        <label for="AddReference" class="text-my_gray pt-3 font-semibold">
+                            Add Reference (Optional)
+                        </label>
+
+                        <textarea name="AddReference" id="AddReference" @bind="stepFiveRequest.AddReference" cols="30" rows="5"
+                                  placeholder="Add Reference Link Here" readonly
+                                  class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                    </div>
+
+                    <!-- drag & drop -->
+                    <div class="pt-3">
+
+                        <label for="drag_drop" class="text-my_gray pt-3 font-semibold">
+                            Upload Files (Optional)
+                        </label>
+
+                        <div class="flex items-center lg:gap-3 md:gap-2 gap-1 flex-col md:flex-row">
+                            <p class="text-my_gray">Up to 20 MB</p>
+
+                            <!-- gray-circle -->
+                            <span class="p-1 h-2 aspect-square bg-my_gray rounded-full mt-1">
+                            </span>
+
+                            <p class="text-my_gray">File Format: jpg, jpeg, png, pdf, doc, docx, xls and xlsx</p>
+                        </div>
+
+                    </div>
+
+                    <!-- files-formats -->
+                    <ul class="pt-4 space-y-1">
+
+                        <!-- JPEG -->
+                        @{
+                            foreach (var aName in fileNames)
+                            {
+                                var fileExtention = string.Empty;
+                                if (aName.Contains("png"))
+                                {
+                                    fileExtention = "assets/PNG.svg";
+                                }
+                                else if (aName.Contains("jpg") || aName.Contains("jpeg"))
+                                {
+                                    fileExtention = "assets/JPG.svg";
+                                }
+                                else if (aName.Contains("doc"))
+                                {
+                                    fileExtention = "assets/DOC.svg";
+                                }
+                                else if (aName.Contains("pdf"))
+                                {
+                                    fileExtention = "assets/PDF.svg";
+                                }
+                                else if (aName.Contains("xls") || aName.Contains("xlsx"))
+                                {
+                                    fileExtention = "assets/XLS.svg";
+                                }
+                                @* <li class="flex justify-between items-center border border-light_gray py-3 px-4 rounded">
+                <div class="flex gap-7 items-center">
+                <img src="assets/JPEG.svg" alt="jpeg-icon">
+                <p>@aName</p>
+                </div>
+                </li> *@
+                                <li class="flex flex-col gap-0 items-center justify-center" id="node">
+
+                                    @*<img src="Test/ggggggggggggggggg ggggggggggggggg .gggggggggg.png" alt="Dynamic-Pic-Name"
+                    class="w-full h-24 border-t border-x rounded-t object-cover">*@
+
+                                    <div class="flex justify-between items-center rounded-b w-full p-1 border-x border-b bg-blue-200">
+
+                                        <div class="flex gap-3 justify-between items-center max-w-[70%]">
+
+                                            <img src="@fileExtention" alt="Dynamic-Icon-Logo-Name">
+
+                                            <p class="text-xs overflow-clip break-words">
+                                                @aName
+                                            </p>
+                                        </div>
+
+                                        <div class="flex flex-col gap-1">
+                                            <img src="assets/down-arrow.svg" alt="down-arrow-icon"
+                                                 class="h-6 aspect-square cursor-pointer p-1 hover:bg-active_bg  duration-300 rounded-full">
+
+                                            @*<img src="assets/Rejected.svg" alt="Rejected.svg"
+                            class="h-6 aspect-square cursor-pointer p-1 hover:bg-active_bg  duration-300 rounded-full">*@
+                                        </div>
+                                    </div>
+
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
+
+
+            <!-- page-4=form-2 - start -->
+            <div class="pt-1">
+                <h2 class="font-semibold">
+                    Existing Status & Change Impact
+                </h2>
+
+                <!-- 1st-textarea -->
+                <div class="flex md:gap-3 flex-col md:flex-row">
+                    <!-- 1st-half -->
+                    <div class="py-3 md:w-1/2">
+
+                        <label for="ChangeFromExisting" class="text-my_gray font-semibold">
+                            Change From (existing status)
+                        </label>
+
+                        <textarea name="ChangeFromExisting" id="ChangeFromExisting" cols="32" rows="5" readonly
+                                  placeholder="Enter Descriptions" @bind="stepFiveRequest.ChangeFromExisting"
+                                  class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                    </div>
+
+                    <!-- 2nd-half -->
+                    <div class="py-3 md:w-1/2">
+
+                        <label for="ChangeToAfter" class="text-my_gray font-semibold">
+                            Change To (change after)
+                        </label>
+
+                        <textarea name="ChangeToAfter" id="ChangeToAfter" cols="32" rows="5" readonly
+                                  placeholder="Enter Descriptions" @bind="stepFiveRequest.ChangeToAfter"
+                                  class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                    </div>
+                </div>
+
+                <!-- 2nd-textarea -->
+                <div class="py-3">
+                    <label for="ChangeImpactDescription" class="text-my_gray font-semibold">
+                        Change Impact Description (Explain the impact if the proposed)
+                    </label>
+
+                    <textarea name="ChangeImpactDescription" id="ChangeImpactDescription" cols="30" rows="5" readonly
+                              placeholder="Enter Descriptions" @bind="stepFiveRequest.ChangeImpactDescription"
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                </div>
+
+                <!-- 3rd-textarea -->
+                <div class="py-3">
+                    <label for="Justification" class="text-my_gray font-semibold">
+                        Justification (Justify why the proposed changes should be)
+                    </label>
+
+                    <textarea name="Justification" id="Justification" cols="30" rows="7" readonly
+                              placeholder="Enter Descriptions" @bind="stepFiveRequest.Justification"
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                </div>
+            </div>
+            <!-- page-4=form-2 - end -->
+            <!-- page-4=form-3 - start -->
+            <div class="pt-2">
+                <h2 class="font-semibold">
+                    Risk factor
+                </h2>
+
+                <p class="text-my_gray pt-1">
+                    Explain the impact if the proposed change is not implemented and risk after change
+                </p>
+
+                <div class="pt-3 flex md:gap-5 gap-3 flex-col md:flex-row">
+                    <!-- check -->
+                    <label for="risk" class="text-my_gray font-semibold">Level of risk :</label>
+                    <!-- check -->
+                    <InputRadioGroup Name="RiskFactor" @bind-Value="@stepFiveRequest.LevelOfRisk" readonly>
+                        <ul class="space-x-5 flex">
+
+                            <!-- 1-checkbox -->
+                            <li class="flex items-center gap-3 ">
+                                <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" readonly id="High" Value="@("High")" />
+                                <!-- check -->
+                                <label for="High" class="text-my_gray block cursor-pointer">
+                                    <!-- check -->
+                                    High
+                                </label>
+                            </li>
+
+                            <!-- 2-checkbox -->
+                            <li class="flex items-center gap-3 ">
+                                <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" readonly id="Medium" Value="@("Medium")" />
+                                <!-- check -->
+                                <label for="Medium" class="text-my_gray block cursor-pointer">
+                                    <!-- check -->
+                                    Medium
+                                </label>
+                            </li>
+
+                            <!-- 3-checkbox -->
+                            <li class="flex items-center gap-3 ">
+                                <InputRadio class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" readonly id="Low" Value="@("Low")" />
+                                <!-- check -->
+                                <label for="Low" class="text-my_gray block cursor-pointer">
+                                    <!-- check -->
+                                    Low
+                                </label>
+                            </li>
+                        </ul>
+                    </InputRadioGroup>
+                </div>
+
+                <!-- 1st-textarea -->
+                <div class="py-3">
+                    <textarea name="LevelOfRiskDescription" id="LevelOfRiskDescription" cols="30" rows="5" readonly
+                              placeholder="Level of risk description" @bind="@stepFiveRequest.LevelOfRiskDescription"
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                </div>
+
+                <!-- 2nd-textarea -->
+                <div class="py-3">
+
+                    <h2 class="font-semibold">Alternatives</h2>
+
+                    <label for="AlternativeDescription" class="text-my_gray pt-3">
+                        <!-- check -->
+                        Provide up to three alternatives that could be implemented instead of the
+                        proposed change) – If applicable
+                    </label>
+
+                    <textarea name="AlternativeDescription" id="AlternativeDescription" cols="30" rows="5" readonly
+                              placeholder="Enter Descriptions" @bind="@stepFiveRequest.AlternativeDescription"
+                              class="block w-full border px-2 py-1 rounded border-light_gray mt-2 scroll"></textarea>
+                </div>
+            </div>
+            <!-- page-4=form-3 - end -->
+            <!-- form-buttons start -->
+            <!-- out of form check with 'id & form' -->
+            <!-- form-buttons end -->
+
+        </EditForm>
+
+        @if ((getPermission["ChangeRequest/AddChangeRequest".ToLower()]))
+        {
+            <!-- form-btn-out of form start  -->
+
+            <div class="flex justify-between md:p-5 px-3 py-5 w-full bottom-0 sticky bg-white rounded top ">
+                <!-- flex justify-between -->
+
+                <a href="/StepFour" form="form-btn"
+                   class="bg-white border border-my_dark md:px-6 md:py-2 px-2 py-1 rounded text-my_dark hover:bg-my_dark hover:text-white ease-in-out duration-300 flex gap-2 items-center justify-center group">
+                    <img src="/assets/left-arrow.svg" alt="left-arrow-icon" class="cus-white-filter pt-[2px]">
+
+                    Back
+
+                </a>
+
+                <div class=" flex md:gap-3 gap-1 justify-end">
+
+                    <button form="step-five-form-btn" type="submit" @onclick="SaveReq"
+                            class="bg-my_blue md:px-6 md:py-2 px-2 py-1 rounded text-white hover:bg-deep_blue ease-in-out duration-300">
+                        Submit Request
+
+                    </button>
+
+                    @*<button form="step-five-form-btn" type="button"
+            class="border border-light_gray md:px-6 md:py-2 px-2 py-1 rounded hover:text-my_blue hover:border-my_blue ease-in-out duration-300">
+            Cancel
+            </button>*@
+
+                </div>
+
+            </div>
+
+            <!-- form-btn-out of form end  -->
+        }
+
+
+    </div>
+
+
+}
+
+
+@code {
+    private UserModel user;
+    public string LoginMesssage { get; set; }
+    ClaimsPrincipal claimsPrincipal;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private List<string> RedioOptions1 { get; set; }
+    private List<string> RedioOptions2 { get; set; }
+    protected string SelectData { get; set; }
+
+    private AddChangeReq stepFiveRequest { get; set; }
+    private List<string> fileNames = new List<string>();
+    private List<string> FilePaths { get; set; }
+    private string imgUrl { get; set; }
+
+    protected bool IsDisabled { get; set; } = false;
+
+    IDictionary<string, bool> getPermission { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spinnerService.Show();
+        IsDisabled = true;
+        user = new UserModel();
+        stepFiveRequest = new AddChangeReq();
+        SelectData = string.Empty;
+        claimsPrincipal = (await authenticationStateTask).User;
+        FilePaths = new List<string>();
+
+        if (!claimsPrincipal.Identity.IsAuthenticated)
+        {
+            _spinnerService.Hide();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+
+            /* Permission Setup Start */
+            var name = await localStorage.GetItemAsync<string>("permissionStrList");
+            List<string> nameList = name.Split(',').Select(p => p.Trim()).ToList();
+            
+            List<MenuSetupAndPermissionViewModel> strToObj = new List<MenuSetupAndPermissionViewModel>();
+            var permissionCount = await localStorage.GetItemAsync<int>("permissionCount");
+            if (permissionCount > 0)
+            {
+                for (var i = 0; i <= (permissionCount / 30); i++)
+                {
+                    string localStorageGetPermission = string.Empty;
+                    localStorageGetPermission = await localStorage.GetItemAsync<string>($"permission{i}");
+                    if (!string.IsNullOrEmpty(localStorageGetPermission))
+                    {
+                        strToObj.AddRange(JsonConvert.DeserializeObject<List<MenuSetupAndPermissionViewModel>>(localStorageGetPermission));
+                    }
+                }
+            }
+
+            getPermission = new Dictionary<string, bool>();
+            var perMiss = strToObj.Select(x => x.ControllerName.ToLower() + "/" + x.MethodName.ToLower()).ToList();
+            if (strToObj.Count > 0)
+            {
+                foreach (var aName in perMiss)
+                {
+                    var havePermission = nameList.Any(x => x == aName);
+                    getPermission.Add(aName, havePermission);
+                }
+            }
+            /* Permission Setup End */
+
+
+
+            RedioOptions1 = new List<string>()
+                {
+                    "Project Relevant",
+                    "ERP Relevant",
+                    "Security Relevant",
+                    "User Authentication",
+                    "Configuration Item",
+                    "System Architecture",
+                    "Network Relevant",
+                    "Process, Policy & Procedure"
+                };
+            RedioOptions2 = new List<string>()
+                {
+                    "Product Deliverables Affected",
+                    "Design Deliverables Affected",
+                    "OS/Application Update",
+                    "User Type",
+                    "Patch / Tools",
+                    "User Responsibility",
+                    "Downtime Request",
+                    "Others"
+                };
+            imgUrl = await localStorage.GetItemAsync<string>("imgUrl");
+            var unCompleteData = await localStorage.GetItemAsync<TempChangeRequestedInfo>("uncompleteCr");
+            if (unCompleteData != null)
+            {
+                stepFiveRequest.Subject = unCompleteData.Subject;
+                SelectData = unCompleteData.ChangeRequestFor;
+
+                stepFiveRequest.AddReference = unCompleteData.AddReference;
+                if (unCompleteData.AttachedFiles != null)
+                {
+                    foreach (var aImg in unCompleteData.AttachedFiles)
+                    {
+                        fileNames.Add(aImg.FileName);
+                        FilePaths.Add(imgUrl + aImg.FileName);
+                    }
+                }                
+
+                stepFiveRequest.ChangeFromExisting = unCompleteData.ChangeFromExisting;
+                stepFiveRequest.ChangeToAfter = unCompleteData.ChangeToAfter;
+                stepFiveRequest.ChangeImpactDescription = unCompleteData.ChangeImpactDescription;
+                stepFiveRequest.Justification = unCompleteData.Justification;
+
+                stepFiveRequest.LevelOfRisk = unCompleteData.LevelOfRisk;
+                stepFiveRequest.LevelOfRiskDescription = unCompleteData.LevelOfRiskDescription;
+                stepFiveRequest.AlternativeDescription = unCompleteData.AlternativeDescription;
+            }
+        }
+        _spinnerService.Hide();
+    }
+    public void SetValueFun(string setVal)
+    {
+        //SelectData = setVal;
+    }
+
+    private async Task SaveReq()
+    {
+        _spinnerService.Show();
+        if (!(getPermission["ChangeRequest/AddChangeRequest".ToLower()]))
+        {
+            toastService.ShowError("permission denied.");
+            _spinnerService.Hide();
+            return;
+        }
+        var result = await _changeRequirmentService.StepFiveRequest();
+        
+        var res = await showMessage(result);
+        if (res.StatusCode == 200 && result.StatusCode == 401)
+        {
+            await SaveReq();
+        }
+        await localStorage.RemoveItemAsync("uncompleteCr");
+        NavigationManager.NavigateTo("/mySubmittedCR");
+        _spinnerService.Hide();
+    }
+
+    private async Task<ApiResponse> showMessage(ApiResponse apiResponse)
+    {
+        if (apiResponse.StatusCode == 200)
+        {
+            toastService.ShowSuccess("Change request submitted successfully.");
+        }
+        else if (apiResponse.StatusCode == 401)
+        {
+            var res = await userService.RefreshTokenAsync();
+            if (res != null && res.Status == "invalid_grant")
+            {
+                await userService.removedLocalStorage();
+                await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+                NavigationManager.NavigateTo("/");
+            }
+            else if (res != null && res.Data != null)
+            {
+                UserModel user = (UserModel)res.Data;
+                await userService.setLocalStorage(user);
+                return res;
+            }
+        }
+        else if (apiResponse != null && apiResponse.Status == "invalid_grant" && apiResponse.StatusCode == 400)
+        {
+            await userService.removedLocalStorage();
+            await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            toastService.ShowError(apiResponse.Message);
+        }
+        return apiResponse;
+    }
+}

@@ -1,0 +1,86 @@
+﻿@typeparam TItem
+
+@if (Data != null)
+{
+    <ul class="space-y-5 my-5">
+        @foreach (var item in Data)
+        {
+            var Text = TextField?.Invoke(item);
+            var Value = ValueField?.Invoke(item).ToString();
+            bool Checked = false;
+            if (SelectedValue.Contains(Value))
+            {
+                Checked = true;
+            }     
+
+            <!-- 1-radio -->
+            <li class="flex items-center gap-3 ">
+                <input type="radio" checked=@Checked id="@Text" @onchange="eventArgs => { RedioIsClicked(Value, eventArgs.Value); }"
+                        class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" required>
+                <!-- check -->
+                <label for="@Text" class="text-my_gray block cursor-pointer">
+                    <!-- check -->
+                    @Text
+                </label>
+            </li>
+        }
+    </ul>
+}
+@if (Data1 != null)
+{
+    <ul class="space-y-5 my-5">
+        @foreach (var item in Data1)
+        {
+            var Text = TextField?.Invoke(item);
+            var Value = ValueField?.Invoke(item).ToString();
+            bool Checked = false;
+            if (SelectedValue.Contains(Value))
+            {
+                Checked = true;
+            }
+            
+            <!-- 1-radio -->
+            <li class="flex items-center gap-3 ">
+                <input type="radio" checked=@Checked id="@Text" @onchange="eventArgs => { RedioIsClicked(Value, eventArgs.Value); }"
+                       class="h-4 w-4 border-my_gray accent-deep_blue cursor-pointer" required>
+                <!-- check -->
+                <label for="@Text" class="text-my_gray block cursor-pointer">
+                    <!-- check -->
+            @Text
+                </label>
+            </li>
+        }
+    </ul>
+}
+@ChildContent
+
+@code {
+
+    //Data for the Checkbox
+    [Parameter] public IEnumerable<TItem> Data { get; set; }
+    [Parameter] public IEnumerable<TItem> Data1 { get; set; }
+    // The field to be shown adjacent to checkbox
+    [Parameter] public Func<TItem, string> TextField { get; set; }
+    // The Value which checkbox will return when checked
+    [Parameter] public Func<TItem, object> ValueField { get; set; }
+    // CSS Style for the Checkbox container
+    [Parameter] public string Style { get; set; }
+    // Any childd content for the control (if needed)
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    // The array which contains the list of selected checkboxs
+    [Parameter] public string SelectedValue { get; set; }
+    [Parameter]
+    public EventCallback<string> setValueFun { get; set; }
+
+
+    //Method to update the selected value on click on checkbox
+    public void RedioIsClicked(string aSelectedId, object aChecked)
+    {
+        SelectedValue = aSelectedId;
+        setValueFun.InvokeAsync(aSelectedId);
+        StateHasChanged();
+    }
+
+  
+
+}

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33103.201
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cr.UI", "Cr.UI\Cr.UI.csproj", "{3AC6DEA3-9834-446F-835D-B94BD82EEE58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPV6ConfigBlazorWA", "IPV6ConfigBlazorWA\IPV6ConfigBlazorWA.csproj", "{1A3D2F8A-8947-4D24-A7B2-CD9DE587FD64}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3AC6DEA3-9834-446F-835D-B94BD82EEE58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AC6DEA3-9834-446F-835D-B94BD82EEE58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AC6DEA3-9834-446F-835D-B94BD82EEE58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AC6DEA3-9834-446F-835D-B94BD82EEE58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A3D2F8A-8947-4D24-A7B2-CD9DE587FD64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A3D2F8A-8947-4D24-A7B2-CD9DE587FD64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A3D2F8A-8947-4D24-A7B2-CD9DE587FD64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A3D2F8A-8947-4D24-A7B2-CD9DE587FD64}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {032313FF-6278-4F41-92A8-AAF19E750AC8}
+	EndGlobalSection
+EndGlobal
