@@ -25,11 +25,19 @@ namespace L3T.OAuth2DotNet7.Extention
                 // Register the OpenIddict server components.
                 .AddServer(options =>
                 {
+                    //Enable the token endpoint.
+                    options.SetTokenEndpointUris(Configuration.GetValue<string>("CRSetAuthURL:TokenEndpointUris"))
+                        .SetAuthorizationEndpointUris(Configuration.GetValue<string>("CRSetAuthURL:AuthorizationEndpointUris"))
+                        .SetIntrospectionEndpointUris(Configuration.GetValue<string>("CRSetAuthURL:IntrospectionEndpointUris"))
+                        .SetLogoutEndpointUris(Configuration.GetValue<string>("CRSetAuthURL:LogoutEndpointUris"));
+
+
+
                     // Enable the token endpoint.
-                    options.SetTokenEndpointUris("/api/connect/token")
-                        .SetAuthorizationEndpointUris("/api/connect/authorize")
-                        .SetIntrospectionEndpointUris("/connect/introspect")
-                        .SetLogoutEndpointUris("/api/connect/logout");
+                    //options.SetTokenEndpointUris("/CRIdentity/api/connect/token")
+                    //    .SetAuthorizationEndpointUris("/CRIdentity/api/connect/authorize")
+                    //    .SetIntrospectionEndpointUris("/connect/introspect")
+                    //    .SetLogoutEndpointUris("/CRIdentity/api/connect/logout");
 
                     // Enable the password flow.
                     options.AllowAuthorizationCodeFlow()
@@ -48,7 +56,6 @@ namespace L3T.OAuth2DotNet7.Extention
                     options.UseAspNetCore()
                         .EnableTokenEndpointPassthrough()
                         .EnableLogoutEndpointPassthrough()
-                        .EnableTokenEndpointPassthrough()
                         .EnableUserinfoEndpointPassthrough()
                         .DisableTransportSecurityRequirement() //need to remove
                         .EnableStatusCodePagesIntegration();

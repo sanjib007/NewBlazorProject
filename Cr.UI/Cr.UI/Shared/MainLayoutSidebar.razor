@@ -16,6 +16,7 @@
 @inject IMenuAndPermissionService _menuPermissionService;
 @inject AppState appState
 @implements IDisposable
+@inject IConfiguration Config;
 
 
 <aside class="self-stretch bg-white whitespace-nowrap pt-16 min-h-screen @menuClass" id="cus-collapse">
@@ -45,7 +46,7 @@
                                    class="border-b border-main_bg lg:gap-5 gap-2 lg:p-4 p-3 ease-in-out duration-300 flex items-center group sub_list_item w-full"
                                    title="@aMenu.MenuName">
 
-                                    <img src="@aMenu.MenuIcon" alt="dash-icon" class="cus-filter vs">
+                                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder")+@aMenu.MenuIcon)" alt="dash-icon" class="cus-filter vs">
                                     <!-- invisible group-hover:visible -->
 
                                     <p class="aside_extra">
@@ -136,7 +137,7 @@
 
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
-            //NavigationManager.NavigateTo("/");
+            //NavigationManager.NavigateTo("");
         }
         else
         {            
@@ -267,7 +268,7 @@
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -281,7 +282,7 @@
             toastService.ShowError(apiResponse.Message);
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

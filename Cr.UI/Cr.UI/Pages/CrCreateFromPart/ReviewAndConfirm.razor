@@ -16,6 +16,7 @@
 @inject IToastService toastService;
 @inject AuthenticationStateProvider authenticationStateProvider;
 @inject IMenuAndPermissionService _menuPermissionService;
+@inject IConfiguration Config;
 
 @if (getPermission == null)
 {
@@ -309,7 +310,7 @@ else
 
                 <a href="/StepFour" form="form-btn"
                    class="bg-white border border-my_dark md:px-6 md:py-2 px-2 py-1 rounded text-my_dark hover:bg-my_dark hover:text-white ease-in-out duration-300 flex gap-2 items-center justify-center group">
-                    <img src="/assets/left-arrow.svg" alt="left-arrow-icon" class="cus-white-filter pt-[2px]">
+                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/left-arrow.svg" alt="left-arrow-icon" class="cus-white-filter pt-[2px]">
 
                     Back
 
@@ -376,7 +377,7 @@ else
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {
@@ -487,7 +488,7 @@ else
             await SaveReq();
         }
         await localStorage.RemoveItemAsync("uncompleteCr");
-        NavigationManager.NavigateTo("/mySubmittedCR");
+        NavigationManager.NavigateTo("mySubmittedCR");
         _spinnerService.Hide();
     }
 
@@ -504,7 +505,7 @@ else
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -517,7 +518,7 @@ else
         {
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

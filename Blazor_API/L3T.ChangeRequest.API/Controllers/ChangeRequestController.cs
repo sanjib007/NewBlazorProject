@@ -13,8 +13,8 @@ namespace L3T.ChangeRequest.API.Controllers
 {
 
     [ApiController]
-    [Route(CommonHelper.ControllerRoute)]
-    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme, Roles = CommonHelper.AllRole)]
+    [Route(CommonHelper.CrApiControllerRoute)]
+    [Authorize]
     public class ChangeRequestController : CustomsBaseController
     {
         private readonly IChangeRequestedInfoService _changeRequestedInfoService;
@@ -26,6 +26,12 @@ namespace L3T.ChangeRequest.API.Controllers
             _changeRequestedInfoService = changeRequestedInfoService;
         }
 
+        [AllowAnonymous]
+        [HttpGet("testMethod")]
+        public async Task<IActionResult> testMethod()
+        {
+            return Ok(await _changeRequestedInfoService.testMethod("test data"));
+        }
         
         [HttpGet("AddChangeRequest")]
         public async Task<IActionResult> AddChangeRequest()

@@ -141,7 +141,7 @@ else
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {
@@ -264,7 +264,7 @@ else
             else
             {
                 _spinnerService.Hide();
-                NavigationManager.NavigateTo("/StepOne");
+                NavigationManager.NavigateTo("StepOne");
             }
 
         }
@@ -309,7 +309,7 @@ else
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -322,7 +322,7 @@ else
         {
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

@@ -9,6 +9,7 @@
 
 @inject IGenericService<DeveloperInformation> _developerService;
 @inject IChangeRequirementService _changeRequirementService;
+@inject IConfiguration Config;
 
 
 @if (setEmployeeRequestModel != null)
@@ -68,7 +69,7 @@
                                     <input type="text" placeholder="Search" @bind-value=setEmployeeRequestModel.EmpName @oninput=HandleInput class="px-2 py-1 border-y border-l w-full" id="AssignPersonnel">
 
                                     <button type="button" class="border px-2 py-1 group bg-active_bg">
-                                        <img src="/assets/search-icon.svg" alt="search-icon" class="cus-filter">
+                                        <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/search-icon.svg" alt="search-icon" class="cus-filter">
                                     </button>
                                     <div class="w-full absolute top-[32px] left-0 bg-white max-h-[150px] overflow-y-scroll scroll border rounded shadow-md">
                                         @if (employees is not null)
@@ -162,7 +163,7 @@
                                     <input type="text" placeholder="Search" @bind-value=setEmployeeRequestModel.EmpName @oninput=HandleInput class="px-2 py-1 border-y border-l w-full">
 
                                     <button type="button" class="border px-2 py-1 group bg-active_bg" @onclick="ReloadDeveloperList">
-                                        <img src="/assets/refresh_icon1.svg" style="height: 25px;" alt="search-icon" class="cus-filter">
+                                        <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/refresh_icon1.svg" style="height: 25px;" alt="search-icon" class="cus-filter">
                                     </button>
                                     <div class="w-full absolute top-[32px] left-0 bg-white max-h-[150px] overflow-y-scroll scroll border rounded shadow-md">
                                         @if (employees is not null)
@@ -431,7 +432,7 @@ else
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -444,7 +445,7 @@ else
         {
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

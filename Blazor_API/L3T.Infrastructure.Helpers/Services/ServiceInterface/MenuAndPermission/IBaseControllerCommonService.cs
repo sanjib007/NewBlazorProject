@@ -11,6 +11,6 @@ namespace L3T.Infrastructure.Helpers.Services.ServiceInterface.MenuAndPermission
 {
     public interface IBaseControllerCommonService
     {
-        Task InsertMenuSetupTable(HttpContext httpContext);
+        Task InsertMenuSetupTable(string controllerName, string actionName, string url, string projectName, string type);
     }
 }

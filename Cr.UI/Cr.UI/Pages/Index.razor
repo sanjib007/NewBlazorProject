@@ -18,6 +18,7 @@
 @inject IGenericService<CrDashboardResponseModel> _dashboardInfoService;
 @inject IMenuAndPermissionService _menuPermissionService;
 @inject IToastService toastService;
+@inject IConfiguration Config;
 
 
 @inject AppState appState
@@ -67,7 +68,7 @@
                                 <p class="font-normal text-4xl">@aInfo.Total</p>
                             </div>
                             <div class="right self-end">
-                                <img src="/assets/@(aInfo.Status).svg" alt="card-icon" />
+                            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/@(aInfo.Status).svg" alt="card-icon" />
                             </div>
                         </div>
                     }
@@ -163,7 +164,7 @@
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {
@@ -324,7 +325,7 @@
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)AuthenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -338,7 +339,7 @@
             toastService.ShowError(apiResponse.Message);
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)AuthenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

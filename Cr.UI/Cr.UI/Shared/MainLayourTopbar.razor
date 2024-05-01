@@ -14,6 +14,7 @@
 @inject IToastService toastService;
 @inject AppState appState
 @implements IDisposable
+@inject IConfiguration Config;
 
 @inject IChangeRequirementService _changeRequirementService;
 @inject IGenericService<CrApprovalFlow> _crApprovalFlowService;
@@ -29,7 +30,7 @@
 
         <a href="https://office.link3.net/login/Home/Index" class="py-1 px-8">
 
-            <img src="/assets/logo.jpg" width="61" height="56" alt="link3-logo">
+            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/logo.jpg" width="61" height="56" alt="link3-logo">
         </a>
 
         @*<button class="text-white flex gap-1 cus_collapse p-2 hover:bg-my_blue duration-300 ease-in-out rounded">
@@ -69,7 +70,7 @@
                                 {
                                     <a @onclick="()=>ShowCr(aInfo.CrId)" class="flex items-start gap-3 px-4 py-3 hover:bg-active_bg active:bg-violet-700 duration-300 group">
 
-                                        <img src="/assets/Notification.svg" alt="In-Progress-icon" class="w-8 aspect-square">
+                                        <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/Notification.svg" alt="In-Progress-icon" class="w-8 aspect-square">
 
                                         <div class="text-xs flex flex-col gap-2 text-left w-full overflow-x-hidden">
                                             <h4 class="font-semibold group-hover:text-my_blue duration-300">
@@ -83,7 +84,7 @@
                                             </p>
 
                                             <p class="flex gap-1">
-                                                <img src="/assets/clock-icon.svg" alt="clock-icon">
+                                                <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/clock-icon.svg" alt="clock-icon">
                                                 @{
                                                     var showTime = "";
                                                     var diffInSeconds = (DateTime.Now - aInfo.CreatedAt).TotalSeconds;
@@ -114,7 +115,7 @@
                                 {
                                     <div class="flex items-start gap-3 px-4 py-3 hover:bg-active_bg active:bg-violet-700 duration-300 group">
 
-                                        <img src="/assets/Notification.svg" alt="In-Progress-icon" class="w-8 aspect-square">
+                                        <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/Notification.svg" alt="In-Progress-icon" class="w-8 aspect-square">
 
                                         <div class="text-xs flex flex-col gap-2 text-left w-full overflow-x-hidden">
                                             <h4 class="font-semibold group-hover:text-my_blue duration-300">
@@ -128,7 +129,7 @@
                                             </p>
 
                                             <p class="flex gap-1">
-                                                <img src="/assets/clock-icon.svg" alt="clock-icon">
+                                                <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/clock-icon.svg" alt="clock-icon">
                                                 @{
                                                     var showTime = "";
                                                     var diffInSeconds = (DateTime.Now - aInfo.CreatedAt).TotalSeconds;
@@ -173,7 +174,7 @@
             </div>
 
 
-            <img src="/assets/notification-bell.svg" alt="notification-icon" id="showNotification">
+            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/notification-bell.svg" alt="notification-icon" id="showNotification">
 
             @if(unReadCount == null)
             {
@@ -235,7 +236,7 @@
                     <!-- logout -->
                     <li class="header border-t border-light_gray w-full">
                         <a @onclick="(() => Logout())" href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-active_bg duration-300 text-red-600">
-                            <img src="/assets/logout-icon.svg" alt="logout-icon"
+                            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/logout-icon.svg" alt="logout-icon"
                                  class="border border-light_gray rounded-full p-1">
                             <span>Logout</span>
                         </a>
@@ -250,7 +251,7 @@
 
                 <p class="text-white">@FullName</p>
 
-                <img src="/assets/down-fill-arrow.svg" alt="down-fill-arrow-icon" class="pt-1">
+                <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/down-fill-arrow.svg" alt="down-fill-arrow-icon" class="pt-1">
 
             </div>
 
@@ -310,7 +311,7 @@
                                 <button class="bg-my_blue flex items-center text-white px-4 py-2 rounded-sm gap-3 hover:bg-deep_blue duration-300"
                                 @onclick="ApprocedCr">
                                     <!-- hover:opacity-75 -->
-                                    <img src="/assets/Approved.svg" alt="Approved-icon" class="cus-white-filter" />
+                                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/Approved.svg" alt="Approved-icon" class="cus-white-filter" />
                                     Approve
 
                                 </button>
@@ -325,7 +326,7 @@
                         <button type="button"
                                 class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
                         @onclick="ModalClose">
-                            <img src="/assets/cross-icon.svg" alt="cross-icon" />
+                            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/cross-icon.svg" alt="cross-icon" />
                         </button>
                     </div>
 
@@ -498,7 +499,7 @@
 
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
-            //navigationManager.NavigateTo("/");
+            //navigationManager.NavigateTo("");
         }
         else
         {
@@ -790,7 +791,7 @@
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                navigationManager.NavigateTo("/");
+                navigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -804,7 +805,7 @@
             toastService.ShowError(apiResponse.Message);
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            navigationManager.NavigateTo("/");
+            navigationManager.NavigateTo("");
         }
         else
         {
@@ -818,6 +819,6 @@
     public async Task Logout()
     {
         await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-        navigationManager.NavigateTo("/");
+        navigationManager.NavigateTo("");
     }
 }

@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <!-- s247tm script ends -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="canonical" href="assets/ipv6-subnetcalculator.htm">
+    <title>IPv6 Subnet</title>
+    <meta name="description"
+        content="The IPv6 Subnet Calculator performs network calculations on the given network address block, routing prefix and determines subnet address, host range and notation for the subnet.">
+    <meta name="keywords"
+        content="ipv6 subnet calculator,subnet,ipv6 calculator,ipv6,subnet calculator,subnet,subnetting,network calculator">
+    <link rel="SHORTCUT ICON" href="https://img.site24x7static.com/images/site24x7-fav.ico?p=Sep_07_2023_1">
+    <!-- <link href="https://webfonts.zoho.com/css?family=Lato:400,700" rel="stylesheet">-->
+    <link id="bootstrap-css" rel="preconnect stylesheet" href="assets/bootstrap4.min.css" type="text/css" media="all">
+    <!--Select2 css-->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link id="new-style-css" rel="preload stylesheet" as="style" href="assets/new-style.css" type="text/css"
+        media="all">
+    <link rel="stylesheet" href="assets/alltoolsv2.css" type="text/css">
+    <style type="text/css">
+        #newDiv {
+            max-height: 585px;
+            overflow: auto;
+        }
+
+        .com-section .sticky-header {
+            top: -1px;
+        }
+
+        @media(max-width:767px) {
+            .com-section .sticky-header {
+                position: relative !important;
+                top: 0px;
+            }
+        }
+
+        .loader {
+            border-top: 16px solid blue;
+            border-right: 16px solid green;
+            border-bottom: 16px solid red;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <style type="text/css">
+        .nav-link-color.selected {
+            color: #83b633 !important
+        }
+    </style>
+
+
+
+
+    <script type="text/javascript" src="assets/jquery.min-dc5e7f18c8.js" nonce=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script nonce="">var iamZuid = parseInt();
+        var page_uri = '\x2Ftools\x2Fipv6\x2Dsubnetcalculator.html';
+        var toolsV2 = true;
+        var languageCode = 'en';</script>
+    <script nonce="" src="assets/bignumber.js" defer="defer"></script>
+    <script nonce="" src="assets/ipv6-subnet.js" defer="defer"></script>
+    <script nonce="" src="assets/tools.js" defer="defer"></script>
+    <!-- <script type="text/javascript" src="//js-wc.site24x7static.com/site24x7/client/7116181/js/tools/common-devtools-functions.js?p=Sep_07_2023_1"></script>-->
+    <script nonce="">var beanmsg = { "invalidemail": "???en.fb.valid.email???", "input_url": "Please enter a valid webpage url/domain", "empty_domain": "Please enter a  domain name", "invalid_accessKey": "Invalid Access Keyword", "valid_website": "Please specify a valid website to monitor", "domain_name": "Domain Name", "invalid_url": "Enter a valid url", "empty_accessKey": "Please Enter Access Keyword", "input_location": "Please Select the Location" };  //No I18N
+        $(document).ready(function () {
+            $('#tabs div').hide(); //No I18N
+            $('#tabs div:nth-child(3)').show(); //No I18N
+            $('#tabs ul li:nth-child(1)').removeClass('active'); //No I18N
+            $('#tabs ul li:nth-child(3)').removeClass('active'); //No I18N
+            $('#tabs ul li:nth-child(2)').addClass('active'); //No I18N
+            $('#tabs ul li a').click(function () {  //No I18N
+                $('#tabs ul li').removeClass('active'); //No I18N
+                $(this).parent().addClass('active');  //No I18N
+                var currentTab = $(this).attr('href');   //No I18N
+                $('#tabs div').hide(); //No I18N
+                $(currentTab).show();
+                return false;
+            });
+            //setDefaultIPv6Values();
+            $('#id_request_div').show();
+            $('#id_response_div').hide();
+            $('.tabcontent').hide();
+            $('#view1').show();
+            $('#tab1').attr('checked', true);  //No I18N
+            calculateAndUpdateValues('setNoOfSubnets'); //No I18N
+            tableResize();
+        });
+        function tableResize() {
+            $('#newtable').addClass('table mb-0');
+            $("#newtable").find('td').addClass('text-center');
+            $('.col-sm').css('overflow-wrap', 'anywhere');
+        }</script>
+
+    <style>
+        .customLoder {
+            height: 100%;
+            overflow: hidden;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            backdrop-filter: blur(2px);
+            z-index: 1000000;
+        }
+
+        .select2-container--default .select2-selection--single {
+            padding: 6px;
+            height: 43px;
+            width: 257px;
+            font-size: 1.2em;
+            position: relative;
+        }
+    </style>
+
+</head>
+
+<body><!-- TemplateBeginRepeat name="header" -->
+    <div class='customLoder'></div>
+
+    <!-- TemplateEndRepeat -->
+    <!-- TemplateBeginEditable name="bodypart" -->
+    <div id="temp-body">
+        <section class="tools-hero-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="title-content">
+                            <h1>IPv6 Subnet Calculator</h1>
+                            <p>The IPv6 Subnet Calculator performs network calculations on the given
+                                network address block, routing prefix and determines subnet address,
+                                host range and notation for the subnet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="com-section">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="input-wrap">
+                                    <form action="javascript:void(0);">
+                                        <div class="multi-fields">
+                                            <div class="form-group mr-1"><label>Network address block</label>
+                                                <input type="text" class="form-control" id="ipv6AddressBlock"
+                                                    autocorrect="off" autocapitalize="none" value="2400:ca00::/56">
+                                            </div>
+                                            <div class="form-group ml-1 select-field"><label>Number of Subnets</label>
+                                                <select id="ipv6SubnetBitsVsNoOfSubnets" class="form-control" disabled>
+                                                    <option value="0" selected="selected">/36 (1 subnet)</option>
+                                                    <option value="1">/37 (2 subnets)</option>
+                                                    <option value="2">/38 (4 subnets)</option>
+                                                    <option value="3">/39 (8 subnets)</option>
+                                                    <option value="4">/40 (16 subnets)</option>
+                                                    <option value="5">/41 (32 subnets)</option>
+                                                    <option value="6">/42 (64 subnets)</option>
+                                                    <option value="7">/43 (128 subnets)</option>
+                                                    <option value="8">/44 (256 subnets)</option>
+                                                    <option value="9">/45 (512 subnets)</option>
+                                                    <option value="10">/46 (1024 subnets)</option>
+                                                    <option value="11">/47 (2048 subnets)</option>
+                                                    <option value="12">/48 (4096 subnets)</option>
+                                                    <option value="13">/49 (8192 subnets)</option>
+                                                    <option value="14">/50 (16384 subnets)</option>
+                                                    <option value="15">/51 (32768 subnets)</option>
+                                                    <option value="16">/52 (65536 subnets)</option>
+                                                    <option value="17">/53 (131072 subnets)</option>
+                                                    <option value="18">/54 (262144 subnets)</option>
+                                                    <option value="19">/55 (524288 subnets)</option>
+                                                    <option value="20">/56 (1048576 subnets)</option>
+                                                    <option value="21">/57 (2097152 subnets)</option>
+                                                    <option value="22">/58 (4194304 subnets)</option>
+                                                    <option value="23">/59 (8388608 subnets)</option>
+                                                    <option value="24">/60 (16777216 subnets)</option>
+                                                    <option value="25">/61 (33554432 subnets)</option>
+                                                    <option value="26">/62 (67108864 subnets)</option>
+                                                    <option value="27">/63 (134217728 subnets)</option>
+                                                    <option value="28">/64 (268435456 subnets)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="input-wrap mt-3">
+                                    <div id="SubnetInfoDiv" style="display: block;">
+                                        <h3>Subnet Details</h3>
+                                    </div>
+                                    <div id="tableDiv" class="table-responsive">
+                                        <div class="table-responsive" id="newDiv">
+                                            <table id="newtable" class="table table-bordered table-stripped mb-0">
+                                                <tbody>
+                                                    <tr class="bg-banner-solid--blue sticky-header">
+                                                        <td class="dynamicTableCell text-center"
+                                                            style="font-weight:bold;">
+                                                            Subnet ID
+                                                        </td>
+                                                        <td class="dynamicTableCell text-center"
+                                                            style="font-weight:bold;">
+                                                            Subnet
+                                                            Address</td>
+                                                        <td class="dynamicTableCell text-center"
+                                                            style="font-weight:bold;">
+                                                            Host
+                                                            Address Range</td>
+                                                        <td class="dynamicTableCell text-center"
+                                                            style="font-weight:bold;">
+                                                            Notation
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="input-wrap">
+                            <form action="javascript:void(0);">
+                                <div class="multi-fields">
+                                    <div class="form-group ml-1 select-field"><label>Customer Type</label>
+                                        <select id="customerType" class="form-control">
+                                            <option value="" selected="selected">Select any</option>
+                                            <option value="radius">Radius Customer</option>
+                                            <option value="static">Static Customer</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="hideShow" class="multi-fields">
+                                    <div class="form-group ml-1"><label>Distributors</label>
+                                        <select id="distributorList" class="form-control distributorSelect2">
+                                            <option value="" selected="selected">Select any</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group ml-1 select-field"><label>Packages</label>
+                                        <select id="packageList" class="form-control">
+                                            <option value="" selected="selected">Select any</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="multi-fields">
+                                    <div class="form-group ml-1"><label>BTS Name</label>
+                                        <select id="btsList" class="form-control btsSelect2">
+                                            <option value="" selected="selected">Select any</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mr-1"><label>Pool Name</label>
+                                        <!-- <input type="text" class="form-control" id="poolName" autocorrect="off"
+                                            autocapitalize="none" placeholder="Pool Name"> -->
+                                        <select id="poolName" class="form-control">
+                                            <option value="" selected="selected">Select any</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="multi-fields">
+                                    <div class="form-group ml-1 select-field"><label>Router Brand</label>
+                                        <select id="routerNameList" class="form-control">
+                                            <option value="" selected="selected">Select any</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mr-1"><label>Router Host Name</label>
+                                        <input type="text" class="form-control" id="hostName" disabled autocorrect="off"
+                                            autocapitalize="none" placeholder="Router Host Name">
+                                    </div>
+                                </div>
+                                <div class="multi-fields">
+                                    <div class="form-group mr-1"><label>Loop Back Address</label>
+                                        <input type="text" class="form-control" id="routerSwitchIP" disabled
+                                            autocorrect="off" autocapitalize="none" placeholder="Loop Back Address">
+                                    </div>
+                                    <div class="form-group mr-1"><label>Router Port</label>
+                                        <input type="text" class="form-control" id="noofport" disabled autocorrect="off"
+                                            autocapitalize="none" placeholder="Router Port">
+                                    </div>
+                                </div>
+                                <div class="multi-fields">
+                                    <div class="form-group mr-1"><label>Routor Host and Model</label>
+                                        <input type="text" class="form-control" id="routerSwitchModel" disabled
+                                            autocorrect="off" autocapitalize="none" placeholder="Router Host & Model">
+                                    </div>
+                                    <div class="form-group mr-1"><label>VLAN</label>
+                                        <input type="text" class="form-control" id="vlan" autocorrect="off"
+                                            autocapitalize="none" placeholder="VLAN">
+                                    </div>
+                                </div>
+                                <div class="multi-fields">
+                                    <div class="form-group mr-1"><label>Gateway</label>
+                                        <input type="text" class="form-control" id="gateway" autocorrect="off"
+                                            autocapitalize="none" placeholder="Gateway">
+                                    </div>
+                                    <div class="form-group mr-1"><label>Remarks</label>
+                                        <textarea cols="2" rows="3" class="form-control" id="remarks" autocorrect="off"
+                                            autocapitalize="none" placeholder="Remarks"></textarea>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="d-grid gap-2 text-right">
+                                <button id="insertIPV6CustomerSubnet" class="btn btn-primary" type="button">Submit
+                                    Subnet</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+
+        <!-- Go To Top
+    ============================================= -->
+        <script nonce="" src="assets/site24x7.js"></script>
+        <script nonce="" src="assets/popper.min.js"></script>
+        <script nonce="" src="assets/bootstrap4.min.js"></script>
+
+        <script nonce="">
+            $(".customLoder").hide();
+            $(document).ajaxStart(function () {
+                $(".customLoder").show();
+            });
+            $(document).ajaxStop(function () {
+                $(".customLoder").hide();
+            });
+            $(function () {
+                $('#ipv6AddressBlock').on('input', function () {
+                    let numberOfSubnet = calculateAndUpdateValues('setAddress');
+                    tableResize();
+                    let selectNumberOfSubnetData = numberOfSubnet[0];
+                    let convertedText = "/64";
+                    let i = 0;
+                    let url = "";
+                    newSubnetData = [];
+
+                    selectNumberOfSubnetData.every(element => {
+                        let result = element.includes(convertedText);
+
+                        if (result) {
+
+                            let ipv6SubnetBitsVsNoOfSubnetsInput = document.getElementById('ipv6SubnetBitsVsNoOfSubnets');
+                            ipv6SubnetBitsVsNoOfSubnetsInput.value = i
+                            let numberOfDivisionSubnet = calculateAndUpdateValues('setNoOfSubnets');
+
+                            let positionId = 0;
+                            try {
+                                numberOfDivisionSubnet[1].every(element => {
+                                    setMainModel = parentToCustomer(element[3], setForentKeyId)
+                                    newSubnetData.push(setMainModel);
+                                    setMainModel = {};
+                                    positionId++;
+                                    return true;
+                                });
+                                console.log("subnet data", newSubnetData);
+                            } catch (e) {
+                                console.log(e);
+                            }
+
+                            return false;
+                        }
+
+                        i++;
+                        return true;
+                    });
+
+                });
+                $('#customerType').on('change', function () {
+                    const elementId = document.getElementById('btsList');
+                    clearOption(elementId);
+                    const poolNameElementId = document.getElementById('poolName');
+                    clearOption(poolNameElementId);
+                    const packageElementId = document.getElementById('packageList');
+                    clearOption(packageElementId);
+                    const routerNameListElementId = document.getElementById('routerNameList');
+                    clearOption(routerNameListElementId);
+
+                    document.getElementById('routerSwitchModel').value = "";
+                    document.getElementById('hostName').value = "";
+                    document.getElementById('routerSwitchIP').value = "";
+                    document.getElementById('noofport').value = "";
+
+
+                    var customerTypeValue = $(this).val();
+                    if (customerTypeValue == "static") {
+                        $("#hideShow").hide();
+                    } else {
+                        $("#hideShow").show();
+                        GetAllDistributorList();
+                    }
+                    if (customerTypeValue == "static") {
+                        GetAllBtsList(customerTypeValue, 0, 0);
+                    }
+
+                });
+                $('#distributorList').on('change', function () {
+                    const elementId = document.getElementById('packageList');
+                    clearOption(elementId);
+                    let distributorId = $(this).val();
+                    if (distributorId != "") {
+                        GetAllPackageNameList(distributorId);
+                    } else {
+                        alert("please Select distributor type");
+                        return;
+                    }
+
+                });
+
+                $('#packageList').on('change', function () {
+                    const elementId = document.getElementById('btsList');
+                    clearOption(elementId);
+                    let packageId = $(this).val();
+                    if (packageId != "") {
+                        let customertype = document.getElementById("customerType").value;
+                        let distributorId = setSelectOptionValue("distributorList");
+                        if (customertype == "") {
+                            alert("please Select customertype");
+                            return;
+                        }
+                        if (distributorId == "") {
+                            alert("please Select distributor");
+                            return;
+                        }
+                        GetAllBtsList(customertype, distributorId, packageId);
+                    }
+
+                });
+                $('#btsList').on('change', function () {
+                    const elementId = document.getElementById('poolName');
+                    clearOption(elementId);
+                    let btsId = $(this).val();
+                    if (btsId != "") {
+                        const customertype = document.getElementById("customerType").value;
+                        let distributorId = setSelectOptionValue("distributorList");
+                        let packageID = setSelectOptionValue("packageList");
+                        if (customertype == "") {
+                            alert("please Select customertype");
+                        }
+                        if (customertype == "radius") {
+                            if (distributorId == "") {
+                                alert("please Select distributor");
+                                return;
+                            }
+                            if (packageID == "") {
+                                alert("please Select package");
+                                return;
+                            }
+                        }
+
+                        GetBTSWisePoolNameList(customertype, btsId, distributorId, packageID)
+                        GetAllRouterNameList(btsId);
+                    }
+
+                });
+                $('#routerNameList').on('change', function () {
+                    let routerId = 0;
+                    routerId = $(this).val();
+                    let btsId = setSelectOptionValue("btsList");
+                    GetRouterInformation(btsId, routerId);
+                });
+                $('#poolName').on('change', function () {
+                    let selectedText = $(this).find("option:selected").text();
+                    let vlanText = selectedText.split(":");
+                    document.getElementById("vlan").value = vlanText[1].slice(0, -1).trim();
+                });
+            });</script>
+        <script type="text/javascript" async="" src="assets/cookiepolicy.js"></script>
+        <script src="assets/bd574a79138443698cff78980e7c478b.js"></script>
+        <script src="assets/kankanippu.js" id="tracker-script"></script>
+
+
+        <!--MyScript-->
+        <script>
+
+            function showLoder() {
+                document.getElementById("loader").style.display = "block";
+            }
+            function stopLoder() {
+                document.getElementById("loader").style.display = "block";
+            }
+            let fromToConvertedValue = new Array('28:32', '32:36', '36:44', '44:48', '48:56', '56:64');
+            let baseUrl = "https://localhost:7239/api/IPVSetup/";
+            let misUrl = "https://localhost:7239/api/Mis/";
+            // let baseUrl = "https://l3devopscd.link3.net:9001/api/IPVSetup/";
+            // let misUrl = "https://l3devopscd.link3.net:9001/api/Mis/";
+            let insertUrl = "";
+            let subnetText = "";
+            let setNumberOfSubnetData = "";
+            let setForentKeyId = 0;
+
+            let dateFunction = () => {
+                var d = new Date;
+                var dformat = [d.getFullYear(),
+                d.getMonth() + 1,
+                d.getDate()].join('-') + ' ' +
+                    [d.getHours(),
+                    d.getMinutes(),
+                    d.getSeconds()].join(':');
+                return dformat;
+            }
+
+            let commonvObj = {
+                IsActive: 1,
+                CreatedBy: "System",
+                CreatedAt: new Date, //dateFunction(),
+                IsDeleted: false
+            }
+
+            let setMainModel = {};
+
+
+            const insertData = (url, insertObj) => {
+                if (insertObj.length < 256) {
+                    alert("Please provied valid netork address")
+                }
+                let fetchData = {
+                    method: 'POST',
+                    body: JSON.stringify(insertObj),
+                    headers: new Headers({
+                        'Content-Type': 'application/json; charset=UTF-8'
+                    })
+                }
+                const insertDivisionSubnet = fetch(url, fetchData)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log("inserted successfull. Time : " + new Date + " URL is : " + url, data);
+                        subnetText = "";
+                        setForentKeyId = 0;
+                        alert(data.message);
+                        resetFunction();
+                        return true
+                    });
+            }
+
+            const resetFunction = () => {
+                $(document).ready(function () {
+                    $('.distributorSelect2').select2();
+                    $('.btsSelect2').select2();
+                });
+
+                document.getElementById("ipv6AddressBlock").value = "";
+                document.getElementById("customerType").value = "";
+                resetSelectOption("distributorList");
+                resetSelectOption("btsList");
+                resetSelectOption("packageList");
+                resetSelectOption("routerNameList");
+                document.getElementById("routerSwitchModel").value = "";
+                document.getElementById("hostName").value = "";
+                document.getElementById("routerSwitchIP").value = "";
+                document.getElementById("noofport").value = "";
+                document.getElementById("poolName").value = "";
+                document.getElementById("vlan").value = "";
+                document.getElementById("gateway").value = "";
+                document.getElementById("remarks").value = "";
+
+                $('#tabs div').hide(); //No I18N
+                $('#tabs div:nth-child(3)').show(); //No I18N
+                $('#tabs ul li:nth-child(1)').removeClass('active'); //No I18N
+                $('#tabs ul li:nth-child(3)').removeClass('active'); //No I18N
+                $('#tabs ul li:nth-child(2)').addClass('active'); //No I18N
+                $('#tabs ul li a').click(function () {  //No I18N
+                    $('#tabs ul li').removeClass('active'); //No I18N
+                    $(this).parent().addClass('active');  //No I18N
+                    var currentTab = $(this).attr('href');   //No I18N
+                    $('#tabs div').hide(); //No I18N
+                    $(currentTab).show();
+                    return false;
+                });
+                setDefaultIPv6Values();
+                $('#id_request_div').show();
+                $('#id_response_div').hide();
+                $('.tabcontent').hide();
+                $('#view1').show();
+                $('#tab1').attr('checked', true);  //No I18N
+                calculateAndUpdateValues('setNoOfSubnets'); //No I18N
+                tableResize();
+            }
+
+            const GetAllDistributorList = () => {
+                let fetchData = {
+                    method: 'GET'
+                }
+                const insertDivisionSubnet = fetch(misUrl + "GetAllDistributorList", fetchData)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const select = document.getElementById('distributorList')
+
+                        const arr = data.data;
+
+                        arr.forEach(value => {
+                            const option = document.createElement('option')
+                            option.innerHTML = value.distributorName;
+                            option.value = value.distributorID;
+                            select.appendChild(option)
+                        })
+                    });
+            }
+            GetAllDistributorList();
+
+            const GetAllPackageNameList = (distributorID) => {
+                let fetchData = {
+                    method: 'GET'
+                }
+
+                const insertDivisionSubnet = fetch(misUrl + "GetAllPackageNameList/" + distributorID, fetchData)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const select = document.getElementById('packageList')
+
+                        const arr = data.data;
+
+                        arr.forEach(value => {
+                            const option = document.createElement('option')
+                            option.innerHTML = value.packageName;
+                            option.value = value.packageID;
+                            select.appendChild(option)
+                        })
+                    });
+            }
+
+            const GetAllBtsList = (customerType, distributorID = null, packageID = null) => {
+                let fetchData = {
+                    method: 'GET'
+                }
+
+                const insertDivisionSubnet = fetch(misUrl + "GetAllBtsList/" + customerType + "/" + distributorID + "/" + packageID, fetchData)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data);
+                        const select = document.getElementById('btsList')
+
+                        const arr = data.data;
+
+                        arr.forEach(value => {
+                            const option = document.createElement('option')
+                            option.innerHTML = value.btsSetupName;
+                            option.value = value.btsSetupID;
+                            select.appendChild(option)
+                        })
+                    });
+            }
+
+            const clearOption = (elementId) => {
+                var length = elementId.options.length;
+
+                for (var i = length - 1; i >= 0; i--) {
+                    var textisTrue = elementId[i].text.includes("Select");
+                    if (elementId[i].value != "" && !textisTrue) {
+                        elementId.remove(i);
+                    }
+
+                }
+            }
+            ///api/Mis/GetBtsWisePoolNameList/{customerType}/{btsId}/{distributorId}/{packageId}
+            const GetBTSWisePoolNameList = (customerType, btsId, distributorId, packageId) => {
+                let fetchData = {
+                    method: 'GET'
+                }
+                const insertDivisionSubnet = fetch(misUrl + "GetBtsWisePoolNameList/" + customerType + "/" + btsId + "/" + distributorId + "/" + packageId, fetchData)
+                    .then((response) => response.json())
+                    .then((data) => {
+
+                        const elementId = document.getElementById('poolName')
+                        clearOption(elementId);
+                        const arr = data.data;
+                        console.log(arr);
+                        arr.forEach(value => {
+                            const option = document.createElement('option')
+                            option.innerHTML = value.poolName + " (VLAN : " + value.vlan + ")";
+                            option.value = value.poolName;
+                            elementId.appendChild(option)
+                        })
+                    });
+            }
+
+            const GetAllRouterNameList = (btsId) => {
+                let fetchData = {
+                    method: 'GET'
+                }
+                const insertDivisionSubnet = fetch(misUrl + "GetAllRouterNameList/" + btsId, fetchData)
+                    .then((response) => response.json())
+                    .then((data) => {
+
+                        const elementId = document.getElementById('routerNameList')
+                        clearOption(elementId);
+                        const arr = data.data;
+
+                        arr.forEach(value => {
+                            const option = document.createElement('option')
+                            option.innerHTML = value.routerSwitchBrand;
+                            option.value = value.routerSwitchID;
+                            elementId.appendChild(option)
+                        })
+                    });
+            }
+
+            const GetRouterInformation = (btsId, routerId) => {
+                let fetchData = {
+                    method: 'GET'
+                }
+                const insertDivisionSubnet = fetch(misUrl + "GetRouterInformation/" + btsId + "/" + routerId, fetchData)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const arr = data.data;
+                        if (data.statusCode == 200) {
+                            document.getElementById('routerSwitchModel').value = arr.routerSwitchModel;
+                            document.getElementById('hostName').value = arr.hostName;
+                            document.getElementById('routerSwitchIP').value = arr.routerSwitchIP;
+                            document.getElementById('noofport').value = arr.noofport;
+                        } else {
+                            alert(data.message);
+                            document.getElementById("routerSwitchModel").value = "";
+                            document.getElementById("hostName").value = "";
+                            document.getElementById("routerSwitchIP").value = "";
+                            document.getElementById("noofport").value = "";
+                        }
+
+
+                    });
+            }
+
+
+
+            const primaryToDivision = (element, setForentId) => {
+                let newDivObj = {
+                    DivisionSubnet: element,
+                    IPV6_PrimarySubnetId: setForentId,
+                    ...commonvObj
+                };
+
+                return newDivObj
+            }
+
+            const divisionToUserype = (element, setForentId) => {
+                let newDivObj = {
+                    UserTypeSubnet: element,
+                    IPV6_DivisionSubnetId: setForentId,
+                    ...commonvObj
+                };
+
+                return newDivObj
+            }
+
+            const userypeToCity = (element, setForentId) => {
+                let newDivObj = {
+                    CitySubnet: element,
+                    IPV6_UserTypeSubnetId: setForentId,
+                    ...commonvObj
+                };
+
+                return newDivObj
+            }
+
+            const cityToBTS = (element, setForentId) => {
+                let newDivObj = {
+                    BTSSubnet: element,
+                    IPV6_CitySubnetId: setForentId,
+                    ...commonvObj
+                };
+
+                return newDivObj
+            }
+
+            const bTSToParent = (element, setForentId) => {
+                let newDivObj = {
+                    ParentSubnet: element,
+                    IPV6_BTSSubnetId: setForentId,
+                    ...commonvObj
+                };
+
+                return newDivObj
+            }
+
+            const parentToCustomer = (element, setForentId) => {
+                let newDivObj = {
+                    CustomerSubnet: element,
+                    IPV6_ParentSubnetId: setForentId,
+                    ...commonvObj
+                };
+
+                return newDivObj
+            }
+
+            let newSubnetData = [];
+
+            const subnetInsertprocess = (convertedText) => {
+                let ipv6AddressBlockInput = document.getElementById("ipv6AddressBlock");
+                ipv6AddressBlockInput.value = subnetText
+                let numberOfSubnet = calculateAndUpdateValues('setAddress');
+                let selectNumberOfSubnetData = numberOfSubnet[0];
+
+
+                let i = 0;
+                let url = "";
+
+
+                selectNumberOfSubnetData.every(element => {
+                    let result = element.includes(convertedText);
+
+                    if (result) {
+
+                        let ipv6SubnetBitsVsNoOfSubnetsInput = document.getElementById('ipv6SubnetBitsVsNoOfSubnets');
+                        ipv6SubnetBitsVsNoOfSubnetsInput.value = i
+                        let numberOfDivisionSubnet = calculateAndUpdateValues('setNoOfSubnets');
+
+                        let positionId = 0;
+                        try {
+                            numberOfDivisionSubnet[1].every(element => {
+                                if (convertedText == "/32") {
+                                    setMainModel = primaryToDivision(element[3], setForentKeyId)
+                                } else if (convertedText == "/36") {
+                                    setMainModel = divisionToUserype(element[3], setForentKeyId)
+                                } else if (convertedText == "/44") {
+                                    setMainModel = userypeToCity(element[3], setForentKeyId)
+                                } else if (convertedText == "/48") {
+                                    setMainModel = cityToBTS(element[3], setForentKeyId)
+                                } else if (convertedText == "/56") {
+                                    if (positionId == 0) {
+                                        return true;
+                                    }
+                                    setMainModel = bTSToParent(element[3], setForentKeyId)
+                                } else if (convertedText == "/64") {
+                                    if (positionId == 0) {
+                                        return true;
+                                    }
+                                    setMainModel = parentToCustomer(element[3], setForentKeyId)
+                                } else {
+                                    return false;
+                                }
+
+                                newSubnetData.push(setMainModel);
+                                positionId++;
+                                setMainModel = {};
+                                return true;
+                            });
+                        } catch (e) {
+                            console.log(e);
+                        }
+
+                        return false;
+                    }
+
+                    i++;
+                    return true;
+                });
+
+            }
+
+            const subnetInsertprocessBTSToParentSingelInsert = (convertedText) => {
+                let ipv6AddressBlockInput = document.getElementById("ipv6AddressBlock");
+                ipv6AddressBlockInput.value = subnetText
+                let numberOfSubnet = calculateAndUpdateValues('setAddress');
+                let selectNumberOfSubnetData = numberOfSubnet[0];
+
+
+                let i = 0;
+                let url = "";
+
+
+                selectNumberOfSubnetData.every(element => {
+                    let result = element.includes(convertedText);
+
+                    if (result) {
+
+                        let ipv6SubnetBitsVsNoOfSubnetsInput = document.getElementById('ipv6SubnetBitsVsNoOfSubnets');
+                        ipv6SubnetBitsVsNoOfSubnetsInput.value = i
+                        let numberOfDivisionSubnet = calculateAndUpdateValues('setNoOfSubnets');
+
+                        let positionId = 0;
+                        try {
+                            setMainModel = parentToCustomer(numberOfDivisionSubnet[1][0][3], setForentKeyId)
+                            newSubnetData.push(setMainModel);
+                            positionId++;
+                            setMainModel = {};
+                            return true;
+                        } catch (e) {
+                            console.log(e);
+                        }
+
+                        return false;
+                    }
+
+                    i++;
+                    return true;
+                });
+            }
+
+            const getPrimarySubnetListToDivisionSubnet = (url) => {
+                newSubnetData = [];
+                const primarySubnet = fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        insertUrl = baseUrl + "InsertDivisionSubnet";
+                        let sebnetData = data.data;
+                        sebnetData.forEach(element => {
+                            subnetText = element.primarySubnet;
+                            setForentKeyId = element.id;
+                            subnetInsertprocess("/32")
+                        });
+                    }).then((data) => { getDivisionSubnetListToUserTupeSubnet(baseUrl + "GetAllDivisionSubnet"); });
+            };
+
+
+
+            // total data : 16 
+            const getDivisionSubnetListToUserTupeSubnet = (url) => {
+                newSubnetData = [];
+                const primarySubnet = fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        let sebnetData = data.data;
+                        insertUrl = baseUrl + "InsertUserTypeSubnet";
+                        sebnetData.forEach(element => {
+                            subnetText = element.divisionSubnet;
+                            setForentKeyId = element.id;
+                            subnetInsertprocess("/36")
+                        });
+                    }).then((data) => { getUserTupeSubnetListToCitySubnet(baseUrl + "GetAllUserTypeSubnet"); });
+            };
+
+
+            // total data : 256
+            const getUserTupeSubnetListToCitySubnet = (url) => {
+                newSubnetData = [];
+                const primarySubnet = fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        let sebnetData = data.data;
+                        insertUrl = baseUrl + "InsertCitySubnet";
+                        sebnetData.forEach(element => {
+                            subnetText = element.userTypeSubnet;
+                            setForentKeyId = element.id;
+                            subnetInsertprocess("/44")
+                        });
+                    });
+            };
+
+
+
+            const getCitySubnetListToBTSSubnet = (url) => {
+                newSubnetData = [];
+                const primarySubnet = fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        let sebnetData = data.data;
+                        insertUrl = baseUrl + "InsertBTSSubnet";
+                        sebnetData.every(element => {
+                            if (element.id > parseInt(data.message)) {
+                                if (parseInt(data.message) == 65536) {
+                                    console.log("Finish BTS insert.")
+                                    return false;
+                                };
+                                subnetText = element.citySubnet;
+                                setForentKeyId = element.id;
+                                subnetInsertprocess("/48")
+                            }
+                            return true;
+                        });
+                    }).then((data) => {
+                        if (sebnetData != null)
+                            insertData(insertUrl, newSubnetData);
+                    });
+            };
+
+            const getBTSSubnetListToParentSubnet = (url) => {
+                newSubnetData = [];
+                let sebnetData = null;
+                const primarySubnet = fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        sebnetData = data.data;
+                        insertUrl = baseUrl + "InsertParentSubnet";
+                        if (sebnetData != null && sebnetData.length > 0) {
+                            sebnetData.every(element => {
+                                subnetText = element.btsSubnet;
+                                setForentKeyId = element.id;
+                                subnetInsertprocess("/56")
+                                return true;
+                            });
+                        } else {
+                            console.log("Insert finish");
+                            return false;
+                        }
+
+                    }).then((data) => {
+                        if (sebnetData != null)
+                            insertData(insertUrl, newSubnetData);
+                    });
+            };
+
+            const getParentSubnetListToCustomerSubnet = (url) => {
+                newSubnetData = [];
+                let sebnetData = null;
+                const primarySubnet = fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        sebnetData = data.data;
+                        insertUrl = baseUrl + "InsertCustomerSubnet";
+                        if (sebnetData != null && sebnetData.length > 0) {
+                            sebnetData.every(element => {
+                                subnetText = element.parentSubnet;
+                                setForentKeyId = element.id;
+                                subnetInsertprocess("/64")
+                                return true;
+                            });
+                        } else {
+                            console.log("Insert finish");
+                            return false;
+                        }
+                    }).then((data) => {
+                        if (sebnetData != null && sebnetData.length > 0)
+                            insertData(insertUrl, newSubnetData);
+                    });
+            };
+
+
+            const primaryAndDivisionAndUsertypeSubnetExecutedFunction = () => {
+                getPrimarySubnetListToDivisionSubnet(baseUrl + "GetAllPrimarySubnet");
+            }
+
+            const citySubnetExecutedFunction = () => {
+                getCitySubnetListToBTSSubnet(baseUrl + "GetAllCitySubnet");
+            }
+            const btsSubnetExecutedFunction = () => {
+                getBTSSubnetListToParentSubnet(baseUrl + "GetAllBTSSubnet");
+            }
+            const parentSubnetExecutedFunction = () => {
+                getParentSubnetListToCustomerSubnet(baseUrl + "GetAllParentSubnet");
+            }
+
+
+            const InsertFunction = () => {
+                insertData(insertUrl, newSubnetData);
+            }
+
+            $('#insertIPV6CustomerSubnet').on('click', function () {
+                let ipv6AddressBlock = document.getElementById("ipv6AddressBlock").value;
+                if (!ipv6AddressBlock.includes("/56")) {
+                    alert("Please set proper data for generate address book");
+                    return;
+                }
+                let customerType = document.getElementById("customerType").value;
+                if (customerType == "") {
+                    alert("Please select customer type");
+                    return;
+                }
+                let vlan = document.getElementById("vlan").value
+                if (vlan == "") {
+                    alert("Please select vlan");
+                    return;
+                }
+                let gateway = document.getElementById("gateway").value
+                if (gateway == "") {
+                    alert("Please select gateway");
+                    return;
+                }
+
+                let newObj = {
+                    ParentSubnet: document.getElementById("ipv6AddressBlock").value,
+                    IPV6_BTSSubnetId: "0",
+                    IsActive: "1",
+                    CreatedBy: "System",
+                    CreatedAt: new Date,
+                    CustomerType: document.getElementById("customerType").value,
+                    DistributorId: setSelectOptionValue("distributorList"),
+                    DistributorName: setSelectOptionText("distributorList"),
+                    BTSName: setSelectOptionText("btsList"),
+                    BTSId: setSelectOptionValue("btsList"),
+                    PackageName: setSelectOptionText("packageList"),
+                    PackageId: setSelectOptionValue("packageList"),
+                    RouterNameId: setSelectOptionValue("routerNameList"),
+                    RouterName: setSelectOptionValue("routerNameList"),
+                    RouterHostName: document.getElementById("routerSwitchModel").value,
+                    HostName: document.getElementById("hostName").value,
+                    RouterSwitchIP: document.getElementById("routerSwitchIP").value,
+                    Noofporf: document.getElementById("noofport").value,
+                    PoolId: document.getElementById("poolName").value,
+                    PoolName: document.getElementById("poolName").value,
+                    VLAN: document.getElementById("vlan").value,
+                    Gateway: document.getElementById("gateway").value,
+                    Remarkes: document.getElementById("remarks").value,
+                    IPV6_CustomerSubnets: newSubnetData,
+                }
+                console.log("test obj", newObj);
+                insertData(baseUrl + "InsertIPV6CustomerSubnet", newObj);
+                newObj = {};
+            });
+
+            let setSelectOptionValue = (selectorName) => {
+                var e = document.getElementById(selectorName);
+                var value = e.value == "" ? 0 : e.value;
+                return value;
+            }
+            let setSelectOptionText = (selectorName) => {
+                var e = document.getElementById(selectorName);
+                var text = e.options[e.selectedIndex].text == "Select any" ? null : e.options[e.selectedIndex].text;
+                return text;
+            }
+            let resetSelectOption = (selectorName) => {
+                var e = document.getElementById(selectorName);
+                e.value = "";
+            }
+
+            // In your Javascript (external .js resource or <script> tag)
+            $(document).ready(function () {
+                $('.distributorSelect2').select2();
+                $('.btsSelect2').select2();
+            });
+
+        </script>
+
+
+
+</body>
+
+</html>

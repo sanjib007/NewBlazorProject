@@ -1,9 +1,7 @@
 using Blazored.LocalStorage;
 using Blazored.Toast;
 using Cr.UI.Data;
-using Cr.UI.Data.StateManagement;
 using Cr.UI.ServiceDependencies;
-using Microsoft.AspNetCore.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,9 +30,14 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+//app.UseStaticFiles("/CRLiveProjectBlazorUI");
+
+app.UsePathBase("/CRLiveProjectBlazorUI");
 
 app.UseRouting();
 

@@ -24,6 +24,7 @@
 
 @inject IMenuAndPermissionService _menuPermissionService;
 @inject IApprovalFlowSetupService _crApprovalFlowSetupService;
+@inject IConfiguration Config;
 
 
 
@@ -51,7 +52,7 @@
             <a href="/index"
                class="flex items-center text-xl gap-4 hover:text-my_blue duration-300 rounded-full group">
                 <span>
-                    <img src="/assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
+                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
                 </span>
                 Approval Flow Setup
             </a>
@@ -65,13 +66,13 @@
 
         <button @onclick="(()=>ShowCrDetails(main))"
                 class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
-            <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
             Create Main Approver
         </button>
 
         <button @onclick="(()=>ShowCrDetails(other))"
                 class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
-            <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
             Create Other Approver
         </button>
     </section>
@@ -389,7 +390,7 @@
 
                     <button type="button" class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
                     @onclick="ModalClose">
-                        <img src="/assets/cross-icon.svg" alt="cross-icon" />
+                        <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/cross-icon.svg" alt="cross-icon" />
                     </button>
                 </div>
 
@@ -582,7 +583,7 @@
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {
@@ -1088,7 +1089,7 @@
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -1102,7 +1103,7 @@
             toastService.ShowError(apiResponse.Message);
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

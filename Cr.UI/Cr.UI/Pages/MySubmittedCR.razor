@@ -25,6 +25,7 @@
 @inject IToastService toastService;
 @inject AuthenticationStateProvider authenticationStateProvider
 @inject IJSRuntime js
+@inject IConfiguration Config;
 
 
 <Title Value="Submitted CR" />
@@ -50,7 +51,7 @@ else
                 <a href="/index"
                    class="flex items-center text-xl gap-4 hover:text-my_blue duration-300 rounded-full group">
                     <span>
-                        <img src="/assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
+                        <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
                     </span>
                     Change Request
                 </a>
@@ -59,7 +60,7 @@ else
             {
                 <a href="/stepOne"
                    class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
-                    <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
                     Create
                 </a>
             }
@@ -99,7 +100,7 @@ else
                             <EditForm class="flex w-full items-stretch justify-end" Model="@filter" OnValidSubmit="@SearchOptionMethoh">
                                 <input type="text w-[80%]" @bind-value="filter.Subject" placeholder="Search by CR subject" class="px-2 py-1 border-y border-l md:w-7/12" />
                                 <button type="submit" class="border px-2 py-1 group bg-active_bg">
-                                    <img src="/assets/search-icon.svg" alt="search-icon" class="cus-filter" />
+                                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/search-icon.svg" alt="search-icon" class="cus-filter" />
                                 </button>
                             </EditForm>
                         </div>
@@ -132,7 +133,7 @@ else
                         <tbody class="block space-y-2">
                             @foreach (var aCr in changeReqList)
                             {
-                                var imgUrl = "/assets/" + @aCr.Status + ".svg";
+                                var imgUrl = @$"/{Config.GetValue<string>("AppSettings:SubFolder")}assets/{@aCr.Status}.svg";
                                 var riskLevelCss = "";
                                 if (@aCr.LevelOfRisk == "High")
                                 {
@@ -271,7 +272,7 @@ else
                         <button type="button"
                                 class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
                         @onclick="ModalClose">
-                            <img src="/assets/cross-icon.svg" alt="cross-icon" />
+                            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/cross-icon.svg" alt="cross-icon" />
                         </button>
                     </div>
 
@@ -462,7 +463,7 @@ else
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {
@@ -797,7 +798,7 @@ else
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -811,7 +812,7 @@ else
             toastService.ShowError(apiResponse.Message);
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

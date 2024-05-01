@@ -1,7 +1,7 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/api/connect/token",
+      "DownstreamPathTemplate": "/CRIdentity/api/connect/token",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -13,7 +13,7 @@
       "UpstreamHttpMethod": [ "Post" ]
     },
     {
-      "DownstreamPathTemplate": "/api/Authorization/{everything}",
+      "DownstreamPathTemplate": "/CRIdentity/api/Authorization/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -213,6 +213,6 @@
   ],
 
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:7187"
+    "BaseUrl": "https://localhost:7187/CRAPIGateway"
   }
 }

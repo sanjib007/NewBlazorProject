@@ -11,7 +11,7 @@ using OpenIddict.Validation.AspNetCore;
 namespace L3T.OAuth2DotNet7.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route(CommonHelper.IdentityControllerRoute)]
     public class SeedController : ControllerBase
     {
         private readonly IServiceProvider _serviceProvider;

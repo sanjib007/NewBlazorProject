@@ -13,6 +13,7 @@
 @inject IMenuAndPermissionService _menuPermissionService;
 
 @inject Blazored.LocalStorage.ILocalStorageService localStorage;
+@inject IConfiguration Config;
 
 
 @if (AssignedEmployeeData == null)
@@ -33,7 +34,7 @@ else
                     }
                     <button type="button" @onclick="()=>ChangeModalState(step)"
                             class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
-                        <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+                        <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
                         Assign
                     </button>
                 </div>
@@ -46,7 +47,7 @@ else
                             <th class="border-r border-light_gray flex justify-center w-full">
                                 <button class="py-2 px-3 flex gap-2 items-center justify-center w-full hover:bg-active_bg duration-300 ease-in-out">
                                     SL No.
-                                    <img src="/assets/sorter-icon.svg" alt="sorter-icon" class="" />
+                                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/sorter-icon.svg" alt="sorter-icon" class="" />
                                 </button>
                             </th>
                             <th class="py-2 px-3 border-r border-light_gray text-start">Assigned Person</th>
@@ -77,11 +78,11 @@ else
                                             <button style="filter: invert(27%) sepia(92%) saturate(4800%) hue-rotate(352deg) brightness(95%) contrast(142%);" class="hover:opacity-75 duration-300 group p-1 px-2 rounded-full" @onclick="()=>ChangeTaskAsync(aInfo)">
                                                 @if (aInfo.Task == "Completed")
                                                 {
-                                                    <img src="/assets/checkbox.png" style="width:25px; height:25px;" alt="Delete-Icon" class="cus-red-filter" />
+                                                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/checkbox.png" style="width:25px; height:25px;" alt="Delete-Icon" class="cus-red-filter" />
                                                 }
                                                 else
                                                 {
-                                                    <img src="/assets/unchecked.png" style="width:25px; height:25px;" alt="Delete-Icon" class="cus-red-filter" />
+                                                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/unchecked.png" style="width:25px; height:25px;" alt="Delete-Icon" class="cus-red-filter" />
                                                 }
                                             </button>
                                         }
@@ -92,7 +93,7 @@ else
                                     @if (getPermission["AssignToEmployee/AssignEmployeeDelete".ToLower()])
                                     {
                                         <button style="filter: invert(27%) sepia(92%) saturate(4800%) hue-rotate(352deg) brightness(95%) contrast(142%);" class="hover:opacity-75 duration-300 group p-1 px-2 rounded-full" @onclick="()=>DeleteAssingeEmployee(aInfo)">
-                                            <img src="/assets/Delete-Icon.svg" alt="Delete-Icon" class="cus-red-filter" />
+                                            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/Delete-Icon.svg" alt="Delete-Icon" class="cus-red-filter" />
                                         </button>
                                     }
                                 </td>
@@ -421,7 +422,7 @@ else
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -435,7 +436,7 @@ else
             toastService.ShowError(apiResponse.Message);
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

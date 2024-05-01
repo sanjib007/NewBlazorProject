@@ -1,4 +1,5 @@
 ﻿@using Cr.UI.Data;
+@inject IConfiguration Config;
 
 
 @if (ApprovalData == null)
@@ -14,7 +15,7 @@ else
     <div class="history">
         <button class="flex justify-between items-center w-full bg-[#f9f9f9] py-[9px] px-[18px]  outline outline-[#efefef] font-medium text-sm">
             History
-            <img src="/assets/down-fill-arrow.svg"
+            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/down-fill-arrow.svg"
                  alt="down-fill-arrow-icon"
                  class="cus-black-filter h-3 aspect-square" />
         </button>

@@ -24,6 +24,7 @@
 @inject IGenericService<CrApprovalFlow> _crApprovalFlowService;
 @inject IChangeRequirementService _changeRequirementService;
 @inject IMenuAndPermissionService _menuPermissionService;
+@inject IConfiguration Config;
 
 
 <Title Value="Menu And Permission" />
@@ -50,7 +51,7 @@ else{
             <a href="/index"
                class="flex items-center text-xl gap-4 hover:text-my_blue duration-300 rounded-full group">
                 <span>
-                    <img src="/assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
+                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/left-long-arrow-icon.svg" alt="left-long-arrow-icon" class="cus-filter" />
                 </span>
                 Menu And Permission Settings
             </a>
@@ -318,7 +319,7 @@ else{
 
 								<button type="button" class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
 								@onclick="ModalClose">
-									<img src="/assets/cross-icon.svg" alt="cross-icon" />
+									<img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/cross-icon.svg" alt="cross-icon" />
 								</button>
 							</div>
 
@@ -715,7 +716,7 @@ else{
 									   class="px-2 py-1 border-y border-l  w-full rounded-l-sm" id="user_id" />
 
 								<button type="submit" class="border px-2 py-1 group bg-active_bg rounded-r-sm">
-									<img src="/assets/search-icon.svg" alt="search-icon" class="cus-filter" />
+									<img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/search-icon.svg" alt="search-icon" class="cus-filter" />
 								</button>
 
 								<div class="w-full absolute top-[33px] left-0 bg-white max-h-[300px] overflow-y-scroll scroll  rounded border shadow-md">
@@ -1004,7 +1005,7 @@ else{
 		if (!claimsPrincipal.Identity.IsAuthenticated)
 		{
 			_spinnerService.Hide();
-			NavigationManager.NavigateTo("/");
+			NavigationManager.NavigateTo("");
 		}
 		else
 		{
@@ -1515,7 +1516,7 @@ else{
 			{
 				await userService.removedLocalStorage();
 				await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-				NavigationManager.NavigateTo("/");
+				NavigationManager.NavigateTo("");
 			}
 			else if (res != null && res.Data != null)
 			{
@@ -1529,7 +1530,7 @@ else{
 			toastService.ShowError(apiResponse.Message);
 			await userService.removedLocalStorage();
 			await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-			NavigationManager.NavigateTo("/");
+			NavigationManager.NavigateTo("");
 		}
 		else
 		{

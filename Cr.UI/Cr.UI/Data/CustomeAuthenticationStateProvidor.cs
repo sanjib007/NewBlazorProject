@@ -1,6 +1,8 @@
 ﻿using Blazored.LocalStorage;
+using Blazored.Toast.Services;
 using Cr.UI.Services.Interface;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Linq;
 using System.Security.Claims;
 
 namespace Cr.UI.Data
@@ -9,11 +11,16 @@ namespace Cr.UI.Data
     {
         public ILocalStorageService _localStorage;
         public IUserService _userService;
+        public IMenuAndPermissionService _menuAndPermissionService;
 
-        public CustomeAuthenticationStateProvidor(ILocalStorageService localStorage, IUserService userService)
+        public CustomeAuthenticationStateProvidor(
+            ILocalStorageService localStorage, 
+            IUserService userService,
+            IMenuAndPermissionService menuAndPermissionService)
         {
             _localStorage = localStorage;
             _userService = userService;
+            _menuAndPermissionService = menuAndPermissionService;
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -98,20 +105,24 @@ namespace Cr.UI.Data
 
         public async Task MarkUserAsLoggedOut()
         {
-            await _userService.Logout();
-
-            await removeLocalStorage();
-
             var identity = new ClaimsIdentity();
-
             var user = new ClaimsPrincipal(identity);
-
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
+
+            _userService.Logout();
+            await removeLocalStorage();            
         }
 
-        private async Task setLocalStorage(UserModel user)
+        private async Task<bool> setLocalStorage(UserModel user)
         {
             await _userService.setLocalStorage(user);
+            var allPermissionResponse = await _menuAndPermissionService.GetAllMenuWithPermission("Account/GetAllMenuAndPermission");
+            if (allPermissionResponse.Status == "Error" || allPermissionResponse.StatusCode == 400)
+            {
+                await _userService.removedLocalStorage();
+                return false;
+            }            
+            return true;
         }
         private async Task removeLocalStorage()
         {

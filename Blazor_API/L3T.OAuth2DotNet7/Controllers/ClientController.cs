@@ -1,4 +1,5 @@
 ﻿using L3T.OAuth2DotNet7.Services.Interface;
+using L3T.Utility.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Validation.AspNetCore;
@@ -6,7 +7,7 @@ using OpenIddict.Validation.AspNetCore;
 namespace L3T.OAuth2DotNet7.Controllers
 {
     [ApiController]
-	[Route("api/[controller]")]
+	[Route(CommonHelper.IdentityControllerRoute)]
 	[Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
 	public class ClientController : ControllerBase
 	{

@@ -8,13 +8,15 @@ using L3T.OAuth2DotNet7.Services.Interface;
 using L3T.OAuth2DotNet7.Services.Interface.MenuAndPermission;
 using L3T.Utility.Helper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Validation.AspNetCore;
 
 namespace L3T.OAuth2DotNet7.Controllers;
+
 [ApiController]
-[Route("api/[controller]")]
+[Route(CommonHelper.IdentityControllerRoute)]
 [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme, Roles = CommonHelper.AllRole)]
 public class AccountController : Controller
 {
@@ -318,6 +320,14 @@ public class AccountController : Controller
         };
 
         return Ok(apiResponse);
+    }
+
+
+    [AllowAnonymous]
+    [HttpGet("testMethod")]
+    public async Task<IActionResult> testMethod(string searchText)
+    {
+        return Ok(searchText);
     }
 }
 

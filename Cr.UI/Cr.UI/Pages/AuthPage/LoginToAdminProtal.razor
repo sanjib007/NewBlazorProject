@@ -57,7 +57,7 @@
         //delay();
         //if (claimsPrincipal.Identity.IsAuthenticated)
         //{
-        //    NavigationManager.NavigateTo("/index");
+        //    NavigationManager.NavigateTo("index");
         //}
         //else
         //{
@@ -69,7 +69,7 @@
     {
         //if (string.IsNullOrEmpty(userModel.UserName) && string.IsNullOrEmpty(userModel.Password))
         //{
-        //    NavigationManager.NavigateTo("/");
+        //    NavigationManager.NavigateTo("");
         //}
         var returnedUser = await userService.LoginAsync(userModel);
         //Task.Delay(3000);
@@ -77,13 +77,13 @@
         {
             await ((CustomAuthenticationStateProvidore)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/index");
+            NavigationManager.NavigateTo("index");
         }
         else
         {
             toastService.ShowError(returnedUser.Message);
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
             //LoginMesssage = "Invalid username or password";
             
         }

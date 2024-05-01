@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Net.Http;
 using System.Text;
 
 namespace L3T.Infrastructure.Helpers.Services.ServiceImplementation.Service.Implementation.ChangeRequest.v1
@@ -37,6 +38,7 @@ namespace L3T.Infrastructure.Helpers.Services.ServiceImplementation.Service.Impl
         private readonly IConfiguration _configuration;
         private readonly IMailSenderService _mailSenderService;
         private readonly ICrStatusRepository _crStatusRepository;
+        private readonly IHttpClientFactory _httpClientFactory;
         public ChangeRequestedInfoService(
             IChangeRequestedInfoRepository changeRequestedInfoRepository,
             ITempChangeRequestedInfoRepository tempChangeRequestedInfoRepository,
@@ -50,7 +52,8 @@ namespace L3T.Infrastructure.Helpers.Services.ServiceImplementation.Service.Impl
             ICrAttatchedFilesRepository crAttatchedFilesRepository,
             IConfiguration configuration,
             IMailSenderService mailSenderService,
-            ICrStatusRepository crStatusRepository)
+            ICrStatusRepository crStatusRepository,
+            IHttpClientFactory httpClientFactory)
         {
 
             _changeRequestedInfoRepository = changeRequestedInfoRepository;
@@ -66,6 +69,37 @@ namespace L3T.Infrastructure.Helpers.Services.ServiceImplementation.Service.Impl
             _configuration = configuration;
             _mailSenderService = mailSenderService;
             _crStatusRepository = crStatusRepository;
+            _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<string> testMethod(string l3Id)
+        {
+            var methodName = "ThirdPartyService/GetAllDefaultApprovalFlow";
+            try
+            {
+                var requestMessage = new HttpRequestMessage(System.Net.Http.HttpMethod.Get, $@"account/testMethod?searchText=TestData");
+
+                var httpClient = _httpClientFactory.CreateClient("apiGateway");
+                var response = await httpClient.SendAsync(requestMessage);
+
+                var responseStatusCode = response.StatusCode.ToString();
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                if (responseStatusCode.ToString() == "OK")
+                {
+                    
+                    return responseBody;
+                }
+
+                throw new Exception("Something is wrong in third party api request.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation(@$"Exception {DateTime.Now} : {JsonConvert.SerializeObject(ex)}");
+                await _cRRequestResponseService.CreateResponseRequest(l3Id, ex, null, methodName, null, "Error", ex.Message.ToString());
+                return ex.Message + "\n"+ ex.StackTrace;
+
+            }
         }
 
         public async Task<ApiResponse> AddChangeRequest(string userId, string ip)

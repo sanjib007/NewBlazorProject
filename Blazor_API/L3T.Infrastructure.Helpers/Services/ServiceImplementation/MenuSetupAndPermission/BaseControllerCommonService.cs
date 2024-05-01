@@ -7,6 +7,7 @@ using L3T.Infrastructure.Helpers.Repositories.Interface.MenuSetupAndPermission;
 using L3T.Infrastructure.Helpers.Services.ServiceInterface.MenuAndPermission;
 using L3T.Infrastructure.Helpers.Services.ServiceInterface.Service.Interface.ChangeRequest.v1;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -41,26 +42,17 @@ namespace L3T.Infrastructure.Helpers.Services.ServiceImplementation.MenuSetupAnd
             //_context = context;
         }
 
-        public async Task InsertMenuSetupTable(HttpContext httpContext)
+        public async Task InsertMenuSetupTable(string controllerName, string actionName, string url, string projectName, string type)
         {
             var methodName = "BaseControllerCommonService/InsertMenuSetupTable";
             try
             {
-                if ((!httpContext.Request.Path.Value.Contains("/uploads/") && !httpContext.Request.Path.Value.Contains("/favicon.ico")))
-                {
-                    string url = httpContext.Request.Host.ToString();
-                    string controllerName = httpContext.Request.RouteValues["controller"].ToString();
-                    string actionName = httpContext.Request.RouteValues["action"].ToString();
-                    string projectName = _config.GetValue<string>("DefaultApproverDepartment:ProjectName");
-                    string type = httpContext.Request.Method;
-                    await _menuSetupRepository.InsertMenuSetupTable(controllerName, actionName, url, projectName, type);
-                }
-                
+                await _menuSetupRepository.InsertMenuSetupTable(controllerName, actionName, url, projectName, type);
             }
             catch (Exception ex)
             {
                 _logger.LogInformation(@$"Exception {DateTime.Now} : {JsonConvert.SerializeObject(ex)}");
-                await _cRRequestResponseService.CreateResponseRequest(httpContext, ex, null, methodName, null, ex.Message.ToString());
+                await _cRRequestResponseService.CreateResponseRequest($@"Controller : { controllerName}, actionName : {actionName}, url: {url}, projectName: {projectName}, type: {type}", ex, null, methodName, null, ex.Message.ToString());
             }
         }
 

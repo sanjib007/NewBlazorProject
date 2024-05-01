@@ -131,7 +131,7 @@
                         aInfo.StapImage = null;
                         aInfo.IsCompleted = true;
 
-                        NavigationManager.NavigateTo("/" + aInfo.RouteName);
+                        NavigationManager.NavigateTo(aInfo.RouteName);
                     }
                 }
                 await localStorage.SetItemAsync<List<CrCreateStepsModel>>("CrSteps", defualtCrSteps);

@@ -11,6 +11,7 @@ namespace L3T.Infrastructure.Helpers.Services.ServiceInterface.Service.Interface
 {
     public interface IChangeRequestedInfoService
     {
+        Task<string> testMethod(string l3Id);
         Task<ApiResponse> GetAllChangeRequest(ChangeRequestListReqModel model, string route, string userId, string ip);
         Task<ApiResponse> GetPendingAllChangeRequest(ChangeRequestListReqModel model, string route, string userId, string ip);
         Task<ApiResponse> GetStatusWiseTotalCR(string showFor, string department, string userId, string ip);

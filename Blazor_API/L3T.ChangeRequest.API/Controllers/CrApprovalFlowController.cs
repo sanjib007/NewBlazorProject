@@ -9,7 +9,7 @@ using OpenIddict.Validation.AspNetCore;
 namespace L3T.ChangeRequest.API.Controllers
 {
     [ApiController]
-    [Route(CommonHelper.ControllerRoute)]
+    [Route(CommonHelper.CrApiControllerRoute)]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme, Roles = CommonHelper.AllRole)]
     public class CrApprovalFlowController : CustomsBaseController
     {

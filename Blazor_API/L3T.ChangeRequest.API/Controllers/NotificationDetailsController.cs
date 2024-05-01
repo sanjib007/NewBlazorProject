@@ -9,7 +9,7 @@ using L3T.Infrastructure.Helpers.Services.ServiceInterface.MenuAndPermission;
 
 namespace L3T.ChangeRequest.API.Controllers
 {
-    [Route(CommonHelper.ControllerRoute)]
+    [Route(CommonHelper.CrApiControllerRoute)]
     [ApiController]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme, Roles = CommonHelper.AllRole)]
 

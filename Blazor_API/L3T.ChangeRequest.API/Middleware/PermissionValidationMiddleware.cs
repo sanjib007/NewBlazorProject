@@ -2,7 +2,9 @@
 using L3T.Infrastructure.Helpers.Models.RequestModel.Permission;
 using L3T.Infrastructure.Helpers.Services.ServiceInterface.MenuAndPermission;
 using L3T.Utility.Helper;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace L3T.ChangeRequest.API.Middleware
 {
@@ -26,17 +28,37 @@ namespace L3T.ChangeRequest.API.Middleware
             {
                 try
                 {
-
-                    await _baseControllerCommonService.InsertMenuSetupTable(context);
                     var projectName = _configuration.GetValue<string>("DefaultApproverDepartment:ProjectName");
+                    var controllerName = string.Empty; // "CRAPI"
+                    var actionName = string.Empty;     // "GetCrInfoFroDashboard"
+                    string type = context.Request.Method;
+                    // Get the path segments
+                    var pathSegments = context.Request.Path.Value.Split('/');
+                    string url = $"{string.Concat(context.Request.Scheme, "://", context.Request.Host.ToUriComponent())}{context.Request.Path.Value}";
+                    var i = 0;
+                    foreach (var pathSegment in pathSegments)
+                    {
+                        if (pathSegment.ToLower() == "api")
+                        {
+                            var nextNumber = i + 1;
+                            controllerName = pathSegments[nextNumber];
+                            actionName = pathSegments[nextNumber + 1];
+                            break;
+                        }
+                        i++;
+                    }
+
+                    await _baseControllerCommonService.InsertMenuSetupTable(controllerName, actionName, url, projectName, type);
+                    
                     var getUserid = context.User.GetClaimUserId();
-                    string controllerName = context.Request.RouteValues["controller"].ToString();
-                    string actionName = context.Request.RouteValues["action"].ToString();
                     var request = new GetAllMenuSetupAndPermissionRequestModel()
                     {
                         projectName = projectName,
                         roleName = context.User.GetClaimUserRoles()
                     };
+                    _logger.LogInformation($"path: {url}");
+                    _logger.LogInformation($"Error Message: {context.User.Identity.IsAuthenticated.ToString()}");
+                    _logger.LogInformation($"User Message: {string.Join(", ", context.User.Claims)}");
                     if (!context.User.Identity.IsAuthenticated)
                     {
                         throw new Exception("Unauthorized");

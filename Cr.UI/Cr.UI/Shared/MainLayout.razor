@@ -52,7 +52,7 @@
 
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
-            //navigationManager.NavigateTo("/");
+            //navigationManager.NavigateTo("");
         }
         else
         {            
@@ -65,7 +65,7 @@
     public async Task LogoutFromJS()
     {
         await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-        navigationManager.NavigateTo("/");
+        navigationManager.NavigateTo("");
     }
 
 }

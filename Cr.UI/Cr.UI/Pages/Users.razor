@@ -24,7 +24,7 @@
 
 @inject IMenuAndPermissionService _menuPermissionService;
 @inject IApprovalFlowSetupService _crApprovalFlowSetupService;
-
+@inject IConfiguration Config;
 
 
 
@@ -47,7 +47,7 @@
     <section class="bg-white flex flex-col md:flex-row gap-5 md:items-center items-start justify-between px-6 py-3 mb-2">
         <button @onclick="(()=>ShowCrDetails(adduser))"
                 class="bg-my_blue text-white flex gap-2 items-center justify-center px-3 py-1 rounded-sm hover:bg-deep_blue duration-300">
-            <img src="/assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
+            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/create-icon.svg" alt="create-icon" class="filter invert brightness-0 pt-[2px]" />
             Add User
         </button>
     </section>
@@ -157,7 +157,7 @@
 
                     <button type="button" class="absolute top-8 md:top-auto right-5 ml-4 rounded-full p-3 duration-300 hover:bg-active_bg"
                             @onclick="ModalClose">
-                        <img src="/assets/cross-icon.svg" alt="cross-icon" />
+                        <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/cross-icon.svg" alt="cross-icon" />
                     </button>
                 </div>
 
@@ -186,7 +186,7 @@
                                                class="px-2 py-1 border-y border-l  w-full rounded-l-sm" id="user_id" />
 
                                             <button type="submit" class="border px-2 py-1 group bg-active_bg rounded-r-sm">
-                                                <img src="/assets/search-icon.svg" alt="search-icon" class="cus-filter" />
+                                                <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/search-icon.svg" alt="search-icon" class="cus-filter" />
                                             </button>
 
                                             <div class="w-full absolute top-[33px] left-0 bg-white max-h-[300px] overflow-y-scroll scroll  rounded border shadow-md">
@@ -314,7 +314,7 @@
         if (!claimsPrincipal.Identity.IsAuthenticated)
         {
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {
@@ -812,7 +812,7 @@
             {
                 await userService.removedLocalStorage();
                 await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-                NavigationManager.NavigateTo("/");
+                NavigationManager.NavigateTo("");
             }
             else if (res != null && res.Data != null)
             {
@@ -826,7 +826,7 @@
             toastService.ShowError(apiResponse.Message);
             await userService.removedLocalStorage();
             await ((CustomAuthenticationStateProvidore)authenticationStateProvider).MarkUserAsLoggedOut();
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("");
         }
         else
         {

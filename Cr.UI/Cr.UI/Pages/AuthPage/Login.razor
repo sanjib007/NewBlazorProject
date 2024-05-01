@@ -11,19 +11,20 @@
 @inject IJSRuntime jsRunTime
 @inject IToastService toastService
 @inject SpinnerState _spinnerService;
+@inject IConfiguration Config;
 
 
-<section class="flex max-lg:bg-[url('/assets/login-background.png')] max-lg:bg-left max-lg:bg-no-repeat max-lg:bg-cover">
-    <div class="max-lg:hidden h-screen bg-[url('/assets/login-background.png')] bg-left bg-no-repeat bg-cover w-1/2 flex items-center justify-center">
+<section class="flex max-lg:bg-[url('/CRLiveProjectBlazorUI/assets/login-background.png')] max-lg:bg-left max-lg:bg-no-repeat max-lg:bg-cover">
+    <div class="max-lg:hidden h-screen bg-[url('/CRLiveProjectBlazorUI/assets/login-background.png')] bg-left bg-no-repeat bg-cover w-1/2 flex items-center justify-center">
         <div class="img-wrapper">
-            <img src="/assets/login-icon.svg" alt="login-icon" class="max-w-full" />
+            <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/login-icon.svg" alt="login-icon" class="max-w-full" />
         </div>
     </div>
     <div class="max-lg:w-full max-lg:h-screen form-portion w-1/2 self-stretch flex items-center justify-center">
         <div class="form-items w-[385px] m-2 p-7 bg-white rounded-md ">
             <div class="form-upper-icon hidden max-lg:flex justify-center items-center">
                 <div class="img-wrapper">
-                    <img src="/assets/link3.svg" class="w-[85px]" alt="" />
+                    <img src="/@(Config.GetValue<string>("AppSettings:SubFolder"))assets/link3.svg" class="w-[85px]" alt="" />
                 </div>
             </div>
             <div class="form-title mb-9">
@@ -75,6 +76,7 @@
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
+
     protected async override Task OnInitializedAsync()
     {
         _spinnerService.Show();
@@ -84,7 +86,7 @@
         if (claimsPrincipal.Identity.IsAuthenticated)
         {
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/index");
+            NavigationManager.NavigateTo("index");
         }
         else
         {
@@ -105,7 +107,7 @@
         {
             await ((CustomAuthenticationStateProvidore)AuthenticationStateProvider).MarkUserAsAuthenticated(returnedUser);
             _spinnerService.Hide();
-            NavigationManager.NavigateTo("/index");
+            NavigationManager.NavigateTo("index");
         }
         else
         {

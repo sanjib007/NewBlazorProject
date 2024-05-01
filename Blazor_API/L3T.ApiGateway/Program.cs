@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +15,21 @@ builder.Services.AddOcelot(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "CRAPIGateway/swagger/{documentname}/swagger.json";
+    });
+
+
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/CRAPIGateway/swagger/v1/swagger.json", "My Cool API V1");
+        c.RoutePrefix = "CRAPIGateway/swagger";
+    });
+}
+else
 {
     app.UseSwagger();
     app.UseSwaggerUI();

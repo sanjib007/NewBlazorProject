@@ -92,14 +92,35 @@ builder.Services.AddTransient<PermissionValidationMiddleware>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (configuration.GetValue<bool>("IsShowSwagger"))
+if (configuration.GetValue<bool>("SwaggerAndPathSetup:IsSetPathBase"))
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UsePathBase(configuration.GetValue<string>("SwaggerAndPathSetup:SetPathBase"));
 }
 
-app.UseMiddleware<PermissionValidationMiddleware>();
+// Configure the HTTP request pipeline.
+if (configuration.GetValue<bool>("SwaggerAndPathSetup:IsShowSwagger"))
+{
+    if (configuration.GetValue<bool>("SwaggerAndPathSetup:IsShowSwaggerConfig"))
+    {
+        app.UseSwagger(c =>
+        {
+            c.RouteTemplate = configuration.GetValue<string>("SwaggerAndPathSetup:RouteTemplate");
+        });
+
+
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint(configuration.GetValue<string>("SwaggerAndPathSetup:SwaggerPath"), 
+                configuration.GetValue<string>("SwaggerAndPathSetup:SwaggerName"));
+            c.RoutePrefix = configuration.GetValue<string>("SwaggerAndPathSetup:RoutePrefix");
+        });
+    }
+    else
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+}
 
 app.UseCors(MyAllowSpecificOrigins);
 
@@ -107,7 +128,10 @@ app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<PermissionValidationMiddleware>();
 
 app.MapControllers();
 

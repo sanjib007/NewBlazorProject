@@ -1274,8 +1274,8 @@ video {
 .bg-opacity-75 {
   --tw-bg-opacity: 0.75;
 }
-.bg-\[url\(\'\/assets\/login-background\.png\'\)\] {
-  background-image: url('/assets/login-background.png');
+.bg-\[url\(\'\/CRLiveProjectBlazorUI\/assets\/login-background\.png\'\)\] {
+  background-image: url('/CRLiveProjectBlazorUI/assets/login-background.png');
 }
 .bg-cover {
   background-size: cover;
@@ -1967,8 +1967,8 @@ video {
     white-space: nowrap;
   }
 
-  .max-lg\:bg-\[url\(\'\/assets\/login-background\.png\'\)\] {
-    background-image: url('/assets/login-background.png');
+  .max-lg\:bg-\[url\(\'\/CRLiveProjectBlazorUI\/assets\/login-background\.png\'\)\] {
+    background-image: url('/CRLiveProjectBlazorUI/assets/login-background.png');
   }
 
   .max-lg\:bg-cover {
@@ -2071,8 +2071,8 @@ video {
 
   @media not all and (min-width: 1024px) {
 
-    .sm\:max-lg\:bg-\[url\(\'\/assets\/login-background\.png\'\)\] {
-      background-image: url('/assets/login-background.png');
+    .sm\:max-lg\:bg-\[url\(\'\/CRLiveProjectBlazorUI\/assets\/login-background\.png\'\)\] {
+      background-image: url('/CRLiveProjectBlazorUI/assets/login-background.png');
     }
 
     .sm\:max-lg\:bg-cover {

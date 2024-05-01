@@ -28,7 +28,7 @@ using OpenIddict.Validation.AspNetCore;
 namespace L3T.OAuth2DotNet7.Controllers
 {
     [ApiController]
-    [Route(CommonHelper.ControllerRoute)]
+    [Route("api/[controller]")]
     public class AuthorizationController : Controller
     {
         private readonly SignInManager<AppUser> _signInManager;
@@ -152,47 +152,47 @@ namespace L3T.OAuth2DotNet7.Controllers
                         }
                     }
 
-                    //if (user.IsLoginWithAD)
-                    //{
-                    //    var adip = _config.GetValue<string>("Server:AD");
-                    //    using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, adip))
-                    //    {
-                    //        isAdLoginValid = pc.ValidateCredentials(user.Email, request.Password);
-                    //    }
+                    if (user.IsLoginWithAD)
+                    {
+                        var adip = _config.GetValue<string>("Server:AD");
+                        using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, adip))
+                        {
+                            isAdLoginValid = pc.ValidateCredentials(user.Email, request.Password);
+                        }
 
-                    //    if (!isAdLoginValid)
-                    //    {
-                    //        var properties = new AuthenticationProperties(new Dictionary<string, string>
-                    //        {
-                    //            [OpenIddictServerAspNetCoreConstants.Properties.Error] =
-                    //                OpenIddictConstants.Errors.InvalidGrant,
-                    //            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                    //                "The username/password couple is invalid."
-                    //        });
+                        if (!isAdLoginValid)
+                        {
+                            var properties = new AuthenticationProperties(new Dictionary<string, string>
+                            {
+                                [OpenIddictServerAspNetCoreConstants.Properties.Error] =
+                                    OpenIddictConstants.Errors.InvalidGrant,
+                                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                    "The username/password couple is invalid."
+                            });
 
-                    //        Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-                    //        throw new Exception("The username/password couple is invalid.");
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    // Validate the username/password parameters and ensure the account is not locked out.
-                    //    var result =
-                    //        await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
-                    //    if (!result.Succeeded)
-                    //    {
-                    //        var properties = new AuthenticationProperties(new Dictionary<string, string>
-                    //        {
-                    //            [OpenIddictServerAspNetCoreConstants.Properties.Error] =
-                    //                OpenIddictConstants.Errors.InvalidGrant,
-                    //            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
-                    //                "The username/password couple is invalid."
-                    //        });
+                            Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                            throw new Exception("The username/password couple is invalid.");
+                        }
+                    }
+                    else
+                    {
+                        // Validate the username/password parameters and ensure the account is not locked out.
+                        var result =
+                            await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+                        if (!result.Succeeded)
+                        {
+                            var properties = new AuthenticationProperties(new Dictionary<string, string>
+                            {
+                                [OpenIddictServerAspNetCoreConstants.Properties.Error] =
+                                    OpenIddictConstants.Errors.InvalidGrant,
+                                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] =
+                                    "The username/password couple is invalid."
+                            });
 
-                    //        Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-                    //        throw new Exception("The username/password couple is invalid.");
-                    //    }
-                    //}
+                            Forbid(properties, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                            throw new Exception("The username/password couple is invalid.");
+                        }
+                    }
 
                     var userRoleList = await _userManager.GetRolesAsync(user);
                     var roleListString = string.Join(", ", userRoleList.ToArray());
@@ -472,8 +472,9 @@ namespace L3T.OAuth2DotNet7.Controllers
             throw new ApplicationException("Something is wrong");
         }
 
+
         [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
-        [HttpGet("~/api/connect/logout")]
+        [HttpGet("~/CRIdentity/api/connect/logout")]
         public async Task<IActionResult> Logout()
         {
             var userSub = User.GetClaimUserId();

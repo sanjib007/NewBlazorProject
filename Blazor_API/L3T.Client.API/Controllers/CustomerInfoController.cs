@@ -12,7 +12,7 @@ using OpenIddict.Validation.AspNetCore;
 namespace L3T.Client.API.Controllers
 {
     [ApiController]
-    [Route(CommonHelper.ControllerRoute)]
+    [Route(CommonHelper.IdentityControllerRoute)]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     public class CustomerInfoController : CustomsBaseController
     {
